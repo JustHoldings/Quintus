@@ -1,0 +1,14 @@
+/*     
+
+  Quintus r2.0
+  
+  
+  (c) 2023 JustHoldings
+  
+
+  r2.0
+
+  + Added Global Json State loading
+  + Added Global Object pool
+  + Added Updates from last public forks of Quintus
+*/
