@@ -17,11 +17,20 @@
 
     <script>
 window.addEventListener("load",function() {
-        var Q = Quintus()
+        var Q = Quintus(
+
+            )
         .include("Sprites,Scenes,2D,SVG,Input")
         .svgOnly()
-        .setup('quintus',{ maximize: true });
-        // Create a player sprite
+        .setup('quintus',{
+            maximize: true,
+
+        });
+        Q.loadData("test.json") // Load a single test json file
+        Q.loadData("item/test","item/bigtest") //load a item key and put the contents of item/test.json and item/bigtest.json into it
+        setTimeout(() => {
+            console.log(Q.Data)
+        }, 1000);
         Q.Sprite.extend("Player", {
             init: function (p) {
                 this._super({
@@ -35,7 +44,7 @@ window.addEventListener("load",function() {
       });
 
                 // Enable input control for the player
-                this.add("2d, input");
+        this.add("2d, input");
             },
 
             step: function (dt) {
@@ -67,11 +76,13 @@ window.addEventListener("load",function() {
                    type:"static"
                 }))
             var player = stage.insert(new Q.Player());
-	    console.log(Q.GetOS())
-            stage.add("viewport").follow(Q("Player").first());
+
             });
        
         Q.stageScene("main");
+        console.log(Q.GetOS())
+            //stage.add("viewport").follow(Q("Player").first());
+
         })
     </script>
 </body>
