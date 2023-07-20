@@ -16,12 +16,6 @@ More details and documentation at [HTML5Quintus.com](http://html5quintus.com/)
 
 Read the [Quintus Guide](http://html5quintus.com/guide/intro.md) to get started on the Engine.
 
-Online Forum / Community
-========================
-
-For general questions, demos, etc please post to the [Quintus HTML5 Game Engine G+ Community](https://plus.google.com/communities/104292074755089084725)
-
-
 Using Quintus
 =============
 
@@ -42,13 +36,9 @@ Alternatively you can clone the repo and either use each file separately or gene
     $ npm install
     $ grunt
     
-Check the `dist/` directory for contatenated versions. 
+Check the `build/` directory for contatenated versions. 
 
 
-History of Quintus
-==================
-
-The initial version of Quintus was built over the course of writing [Professional HTML5 Mobile Game Development](http://www.amazon.com/gp/product/B0094P2TU6/ref=as_li_ss_tl?ie=UTF8&camp=1789&creative=390957&creativeASIN=B0094P2TU6&linkCode=as2&tag=tun02-20), although the repo code has diverged a bit from the Engine built in the book, the main philosophy and technologies used have not changed, and reading the book will give you a fairly exhaustive understanding of the internals of the Quintus Engine.
 
 ToDo
 ====

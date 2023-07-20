@@ -4,13 +4,13 @@
 
 /*     
 
-  Quintus r2.0
+  Quintus r0.3.0
   
   
   (c) 2023 JustHoldings
   
 
-  r2.0
+  r0.3.0
 
   + Added Global Json State loading
   + Added Global Object pool
@@ -154,7 +154,7 @@ var Quintus = exportTarget[key] = function(opts) {
     return arg;
   };
 
-  Q.Version="r2.0"
+  Q.Version="0.3.0"
   Q.Title="Quintus"
 /**
  * returns a function that, when invoked will only be triggered at most
@@ -5615,6 +5615,7 @@ Quintus.Scenes = function(Q) {
           for(var ix=gridX1; ix<=gridX2; ix++) {
             if((gridBlock = gridRow[ix])) {
               for(var id in gridBlock) {
+                console.log(gridBlock)
                 if(this.index[id]) {
                   this.index[id].mark = time;
                   if(this.index[id].container) { this.index[id].container.mark = time; }
