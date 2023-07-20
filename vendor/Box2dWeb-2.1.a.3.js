@@ -15,18 +15,29 @@
 * misrepresented as being the original software.
 * 3. This notice may not be removed or altered from any source distribution.
 */
+
+/* 
+  JDM  5:12 PM Sat May 6, 2023
+  * Modified the code relating to mixed restitution. Colliding bodies now use the 
+    lowest restitution of the two bodies. Search on JDM to find the related changes.
+  * Implemented the bug fix related to Object.defineProperty as discussion on GitHub.
+*/
+
+console.log("Box2D version 0.2");
+
 var Box2D = {};
 
 (function (a2j, undefined) {
-
-   if(!(Object.prototype.defineProperty instanceof Function)
+   
+   // JDM, in next line, changed Object.prototype.defineProperty to Object.defineProperty
+   if ( ! (Object.defineProperty instanceof Function)
       && Object.prototype.__defineGetter__ instanceof Function
       && Object.prototype.__defineSetter__ instanceof Function)
    {
       Object.defineProperty = function(obj, p, cfg) {
-         if(cfg.get instanceof Function)
+         if (cfg.get instanceof Function)
             obj.__defineGetter__(p, cfg.get);
-         if(cfg.set instanceof Function)
+         if (cfg.set instanceof Function)
             obj.__defineSetter__(p, cfg.set);
       }
    }
@@ -3680,9 +3691,12 @@ Box2D.postDefs = [];
       return Math.sqrt(friction1 * friction2);
    }
    b2Settings.b2MixRestitution = function (restitution1, restitution2) {
-      if (restitution1 === undefined) restitution1 = 0;
-      if (restitution2 === undefined) restitution2 = 0;
-      return restitution1 > restitution2 ? restitution1 : restitution2;
+      if (restitution1 === undefined) restitution1 = 1.0;  // JDM 0
+      if (restitution2 === undefined) restitution2 = 1.0;  // JDM 0
+      // JDM, changed from "restitution1 : restitution2", to take the lower of the two values.
+      // And made a corresponding change: all places where restitution was set to 0.0. Now set to 1.0. Search on JDM to find these changes.
+      // Restitution is undefined for walls, so they also yield 1.0 here, now (after these changes).
+      return restitution1 > restitution2 ? restitution2 : restitution1; 
    }
    b2Settings.b2Assert = function (a) {
       if (!a) {
@@ -5383,7 +5397,7 @@ Box2D.postDefs = [];
       return this.m_restitution;
    }
    b2Fixture.prototype.SetRestitution = function (restitution) {
-      if (restitution === undefined) restitution = 0;
+      if (restitution === undefined) restitution = 1.0; // JDM 0
       this.m_restitution = restitution;
    }
    b2Fixture.prototype.GetAABB = function () {
@@ -5397,7 +5411,7 @@ Box2D.postDefs = [];
       this.m_shape = null;
       this.m_density = 0.0;
       this.m_friction = 0.0;
-      this.m_restitution = 0.0;
+      this.m_restitution = 1.0; // JDM 0
    }
    b2Fixture.prototype.Create = function (body, xf, def) {
       this.m_userData = def.userData;
@@ -5441,7 +5455,7 @@ Box2D.postDefs = [];
       this.shape = null;
       this.userData = null;
       this.friction = 0.2;
-      this.restitution = 0.0;
+      this.restitution = 1.0; // JDM 0
       this.density = 0.0;
       this.filter.categoryBits = 0x0001;
       this.filter.maskBits = 0xFFFF;
@@ -7008,6 +7022,8 @@ Box2D.postDefs = [];
             var tY = vBY + (wB * rBX) - vAY - (wA * rAX);
             var vRel = cc.normal.x * tX + cc.normal.y * tY;
             if (vRel < (-b2Settings.b2_velocityThreshold)) {
+               //JDM, only added this commented console.log.
+               //console.log("vRel,-vT=" + vRel + "," + (-b2Settings.b2_velocityThreshold));
                ccp.velocityBias += (-cc.restitution * vRel);
             }
          }
