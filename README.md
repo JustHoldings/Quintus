@@ -58,7 +58,15 @@ Here's some specific pieces that need some love:
 
 Changelog
 =========
-
+### 0.3.0 Q3 Updates
+  + Added Global Json State loading
+  + Added Global Object pool
+  + Added Updates from last public forks of Quintus
+  + Added in cash.js,it's a JQUERY alternative that's 75% smaller than jquery but gets the job done
+  - Removed grunt build
+  + Added new simple build that works across the various ES versions of code
+  + Added in eruda adds a virtual debug window that can be viewed on mobile too
+  + Added in a Render mode that can be set to "pixel" or "hd" this optimizes the canvas using css for pixel games or None pixel art games
 ### 0.2.0 Initial API Docs + Better Tiled Integration + Sloped Tiles
 * `quintus_tmx.js` TMX file extraction 
 * Multi-layer TMX Support + Sloped Tiles by [lendrick](https://github.com/lendrick)
