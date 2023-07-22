@@ -18,7 +18,7 @@ var Q = window.Q = Quintus()
         .setup({ maximize: true,scaleToFit: true })
         // And turn on default input controls and touch input (for UI)
         .controls().touch()
-
+Q.gravityY = 6;       
 // ## Player Sprite
 // The very basic player sprite, this is just a normal sprite
 // using the player sprite sheet with default controls added to it.
@@ -31,7 +31,8 @@ Q.Sprite.extend("Player",{
     this._super(p, {
       sheet: "player",  // Setting a sprite sheet sets sprite width and height
       jumpSpeed: -400,
-      speed: 300
+      speed: 300,
+      pressedspace:false
     });
 
     this.add('2d, platformerControls');
@@ -43,10 +44,22 @@ Q.Sprite.extend("Player",{
         this.destroy();
       }
     });
+  },
+  step:function(dt){
+    if(!this.p.pressedspace&&Q.inputs["q"]) {
+        console.log(`User is pressing the space button`)
+        this.p.pressedspace=true
+    }
+    if(!Q.inputs["q"]){
+      this.p.pressedspace=false
+    }
+    
   }
 });
 
-
+setInterval(() => {
+  console.log(Q.inputs)
+}, 500);
 // ## Tower Sprite
 // Sprites can be simple, the Tower sprite just sets a custom sprite sheet
 Q.Sprite.extend("Tower", {
@@ -100,6 +113,14 @@ Q.scene('endGame',function(stage) {
     Q.clearStages();
     Q.stageScene('level1');
   });
+  let Checker=setInterval(() => {
+    console.log(`End game scene interval triggered`)
+    if(Q.inputs["esc"]){
+      Q.clearStages();
+      Q.stageScene('level1');
+      clearInterval(Checker)
+    }
+  }, 100);
 
   container.fit(20);
 });

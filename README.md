@@ -29,32 +29,17 @@ The easiest way to use Quintus is simply to use the CDN hosted version at:
 
 Quintus has no dependencies.
 
-Alternatively you can clone the repo and either use each file separately or generate a unified version:
-
-    $ git clone git://github.com/cykod/Quintus.git
-    $ cd Quintus
-    $ npm install
-    $ grunt
     
-Check the `build/` directory for contatenated versions. 
-
-
+Check the `build/` directory for single file builds. 
 
 ToDo
 ====
-
-Quintus is a young engine that has a lot of missing gaps - some of which are pretty straightforward to fill in. If you are interested in hacking on Quintus, shoot me an email pascal at cykod period com, I'm happy to help folks get hacking on the engine.
-
-If you have suggestions for additional enhancements, please add them to the Issues queue - no guarantee all ideas will be implemented and integrated into the core of the system, but suggestions welcome.
-
-Here's some specific pieces that need some love:
-
 * Update the Q.Scenes method to only render sprites that are visible in the grid. (so draw doesn't get called with thousands of sprites)
 * Fix the collision methods to calculate a collision magnitude based on dot product of sprite velocities
-* Turn into a Node binary for generating projects.
-* Add Spriter support into the engine
-* Add a simple level editor
-
+* Added in A* Path finding
+* Add in Babylon.js as a Optional Render mode(2D will not be removed)
+* Add in Babylon UI as a optional UI alternative
+* Add in common Ai algorithims(Feeling enemys,Agro enemys etc)
 
 Changelog
 =========
@@ -67,6 +52,10 @@ Changelog
   + Added new simple build that works across the various ES versions of code
   + Added in eruda adds a virtual debug window that can be viewed on mobile too
   + Added in a Render mode that can be set to "pixel" or "hd" this optimizes the canvas using css for pixel games or None pixel art games
+  + Changed input so it can also trigger events based on arbitrary keys without needing a key schema
+  + Added a Optional debug stat that tells you how many of the game objects in the world are actually activley rendered/ticked
+  
+  
 ### 0.2.0 Initial API Docs + Better Tiled Integration + Sloped Tiles
 * `quintus_tmx.js` TMX file extraction 
 * Multi-layer TMX Support + Sloped Tiles by [lendrick](https://github.com/lendrick)
