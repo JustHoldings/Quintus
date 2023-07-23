@@ -54,6 +54,8 @@ Changelog
   + Added in a Render mode that can be set to "pixel" or "hd" this optimizes the canvas using css for pixel games or None pixel art games
   + Changed input so it can also trigger events based on arbitrary keys without needing a key schema
   + Added a Optional debug stat that tells you how many of the game objects in the world are actually activley rendered/ticked
+  + Added a Generic and flexible timer
+  + Added Q.stime it's a simple utility function that just returns Human readable times into their milisecond,second,hourly etc time
   
   
 ### 0.2.0 Initial API Docs + Better Tiled Integration + Sloped Tiles

@@ -22,6 +22,7 @@ Q.gravityY = 6;
 // ## Player Sprite
 // The very basic player sprite, this is just a normal sprite
 // using the player sprite sheet with default controls added to it.
+
 Q.Sprite.extend("Player",{
 
   // the init constructor is called on creation
@@ -32,7 +33,8 @@ Q.Sprite.extend("Player",{
       sheet: "player",  // Setting a sprite sheet sets sprite width and height
       jumpSpeed: -400,
       speed: 300,
-      pressedspace:false
+      pressedspace:false,
+      starttimer:false
     });
 
     this.add('2d, platformerControls');
@@ -53,13 +55,31 @@ Q.Sprite.extend("Player",{
     if(!Q.inputs["q"]){
       this.p.pressedspace=false
     }
+
+    if(!this.p.starttimer&&Q.inputs["w"]){
+      let myTimer = new Q.Timer(10,
+        Q.stime("1 second"),
+        (progress)=>{
+          console.log(`Current Progress is ${progress}`)
+        },
+        ()=>{
+          console.log(`My timer Ended`)
+        },
+        ()=>{
+          console.log(`My Timer Started`)
+        }
+        );
+      this.p.starttimer=true
+
+    }
+    if(!Q.inputs["w"]){
+      this.p.starttimer=false
+    }
     
   }
 });
 
-setInterval(() => {
-  console.log(Q.inputs)
-}, 500);
+
 // ## Tower Sprite
 // Sprites can be simple, the Tower sprite just sets a custom sprite sheet
 Q.Sprite.extend("Tower", {
