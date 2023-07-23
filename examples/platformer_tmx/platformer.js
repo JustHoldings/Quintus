@@ -57,7 +57,7 @@ Q.Sprite.extend("Player",{
     }
 
     if(!this.p.starttimer&&Q.inputs["w"]){
-      let myTimer = new Q.Timer(10,
+      let TestTimer = new Q.Timer(1000,
         Q.stime("1 second"),
         (progress)=>{
           console.log(`Current Progress is ${progress}`)
