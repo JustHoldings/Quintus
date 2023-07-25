@@ -56,6 +56,13 @@ Changelog
   + Added a Optional debug stat that tells you how many of the game objects in the world are actually activley rendered/ticked
   + Added a Generic and flexible timer
   + Added Q.stime it's a simple utility function that just returns Human readable times into their milisecond,second,hourly etc time
+  + Added in alot more easining functions their were only 2 built in linear and Quadratic
+  + Added in  variables MouseX and MouseY to make working with mouse positions less verbose
+  + Added in Q.Active this is another helper function that returns the current amount of objects that are deemed active
+  + Added, Particle Sprite types now automatically get tween component added to them on creation and automatically removed from the scene once no longer in use
+  + Added a Global Event emitter
+  + Added Q.Util this adds some common utility functions to speed up game development
+  + Updated platformer_tmx example,This example will continute to get updates as more features get added to quintus    
   
   
 ### 0.2.0 Initial API Docs + Better Tiled Integration + Sloped Tiles

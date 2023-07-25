@@ -43,7 +43,7 @@ window.addEventListener('load',function(e) {
       [  -90,  120 ],
       [ -150,   60 ]
       ];
-    stage.insert(sprite1);
+    stage.insert(sprite1);   
     // Add the 2D component for collision detection and gravity.
     sprite1.add('2d')
 

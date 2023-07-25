@@ -12,16 +12,62 @@ window.addEventListener("load",function() {
 // Set up an instance of the Quintus engine  and include
 // the Sprites, Scenes, Input and 2D module. The 2D module
 // includes the `TileLayer` class as well as the `2d` componet.
-var Q = window.Q = Quintus()
+var Q = window.Q = Quintus({debug:false})
         .include("Sprites, Scenes, Input, 2D, Anim, Touch, UI, TMX")
         // Maximize this game to whatever the size of the browser is
-        .setup({ maximize: true,scaleToFit: true })
+        .setup({ maximize: true,scaleToFit: true,DebugDrawCallCount:true})
         // And turn on default input controls and touch input (for UI)
         .controls().touch()
-Q.gravityY = 6;       
+let TestDebugText=new Q.UI.Text({ 
+    label: "Test Beta Build\n V0.3.0",
+    color: "black",
+    align: 'center',
+    x:344,
+    y:288
+})
+
+
+
+// Mouse event that has  the Browser and @Canvas position of the mmouse or where the users touching
+/*
+Q._each(["touchstart","mousemove","touchmove"],function(evt) {
+  Q.wrapper.addEventListener(evt,(e)=>{
+    var offset =$("canvas").offset();
+    //console.log(offset)
+    var stage = Q.stage(0), 
+    touch = e.changedTouches ?e.changedTouches[0] : e,
+    point =Q.CanvasToStage(touch.pageX,touch.pageY,stage);
+    //console.log(`Browser position`+touch.pageX)
+    console.log(point)
+    if(!TestDebugText){
+      TestDebugText.p.x=point.x-offset.left
+      TestDebugText.p.y=point.y-offset.top
+    }
+  e.preventDefault();
+  });
+},this);
+*/
+setInterval(() => {
+  if(Q.Active){
+    console.log(Q.Active.Count)
+  }
+  
+}, 1000);
+Q.load("white-flare.png")
+Q.Events.on(`pointerdown`,function(){
+  if(Q("Player").first()){
+
+      Q("Player").first().fire()
+    
+      
+    
+    
+  }
+})
 // ## Player Sprite
 // The very basic player sprite, this is just a normal sprite
 // using the player sprite sheet with default controls added to it.
+
 
 Q.Sprite.extend("Player",{
 
@@ -34,7 +80,8 @@ Q.Sprite.extend("Player",{
       jumpSpeed: -400,
       speed: 300,
       pressedspace:false,
-      starttimer:false
+      starttimer:false,
+      spawnparticle:false,
     });
 
     this.add('2d, platformerControls');
@@ -55,10 +102,9 @@ Q.Sprite.extend("Player",{
     if(!Q.inputs["q"]){
       this.p.pressedspace=false
     }
-
     if(!this.p.starttimer&&Q.inputs["w"]){
-      let TestTimer = new Q.Timer(1000,
-        Q.stime("1 second"),
+      let TestTimer = new Q.Timer(
+        "1 second",
         (progress)=>{
           console.log(`Current Progress is ${progress}`)
         },
@@ -70,12 +116,29 @@ Q.Sprite.extend("Player",{
         }
         );
       this.p.starttimer=true
-
     }
     if(!Q.inputs["w"]){
       this.p.starttimer=false
     }
+    if(!this.p.spawnparticle&&Q.inputs["r"]){
+    }
     
+  },
+  fire:function(data){
+    let Particle=new Q.Sprite({
+      x:Q.Mousex+Q.Util.random(90,200),
+      y: Q.Mousey+Q.Util.random(90,200),
+      asset: 'white-flare.png', 
+      angle: 0,
+      type:Q.SPRITE_PARTICLE,
+      scale:1,
+      });
+    Q.stage().insert(Particle);
+    Particle
+    .animate({ x:this.p.x+Q.Util.random(10,900), y:this.p.y+Q.Util.random(10,900)}, 2, Q.Easing.inOutElastic, { delay: 1 })
+    .chain({ x: Q("Player").first().p.x, y: Q("Player").first().p.y, scale: 0.1, opacity: 1 }, 1, Q.Easing.Quadratic.In )
+    .chain({scale:2,opacity:2})
+    .chain({opacity:0});
   }
 });
 
@@ -117,6 +180,12 @@ Q.Sprite.extend("Enemy",{
 Q.scene("level1",function(stage) {
   Q.stageTMX("level1.tmx",stage);
   stage.add("viewport").follow(Q("Player").first());
+
+  stage.insert(TestDebugText);
+  // A basic sprite shape a asset as the image
+  var sprite1 = new Q.Sprite({ x: 300, y: 500, asset: 'white-flare.png', 
+      angle: 0, collisionMask: 1, scale: 1});
+  //stage.insert(sprite1);
 });
 
 
@@ -130,15 +199,17 @@ Q.scene('endGame',function(stage) {
   var label = container.insert(new Q.UI.Text({x:10, y: -10 - button.p.h, 
                                                    label: stage.options.label }));
   button.on("click",function() {
+    clearInterval(Checker)
     Q.clearStages();
     Q.stageScene('level1');
   });
   let Checker=setInterval(() => {
     console.log(`End game scene interval triggered`)
     if(Q.inputs["esc"]){
+      clearInterval(Checker)
       Q.clearStages();
       Q.stageScene('level1');
-      clearInterval(Checker)
+
     }
   }, 100);
 
