@@ -889,7 +889,90 @@ Math.QPI = Math.PI / 4;
 Q.Util= {
 
     SYMBOL_LISTENERS: Symbol(),
-
+    isStringArray(str){
+      try {
+        const parsedArray = JSON.parse(str);
+        return Array.isArray(parsedArray);
+      } catch (error) {
+        return false;
+      }
+    },
+/**
+ * 40-90% faster than built-in Array.forEach function.
+ *
+ * basic benchmark: https://jsbench.me/urle772xdn
+ */
+ forEach(array, callback){
+  for (let i = 0, l = array.length; i < l; i++) {
+      callback(array[i], i);
+  }
+},
+/**
+* 20-90% faster than built-in Array.some function.
+*
+* basic benchmark: https://jsbench.me/l0le7bnnsq
+*/
+some(array, callback){
+  for (let i = 0, l = array.length; i < l; i++) {
+      if (callback(array[i], i)) {
+          return true;
+      }
+  }
+  return false;
+},
+/**
+* 20-40% faster than built-in Array.every function.
+*
+* basic benchmark: https://jsbench.me/unle7da29v
+*/
+ every(array, callback){
+  for (let i = 0, l = array.length; i < l; i++) {
+      if (!callback(array[i], i)) {
+          return false;
+      }
+  }
+  return true;
+},
+/**
+* 20-60% faster than built-in Array.filter function.
+*
+* basic benchmark: https://jsbench.me/o1le77ev4l
+*/
+filter(array, callback){
+  const output = [];
+  for (let i = 0, l = array.length; i < l; i++) {
+      const item = array[i];
+      if (callback(item, i)) {
+          output.push(item);
+      }
+  }
+  return output;
+},
+/**
+* 20-70% faster than built-in Array.map
+*
+* basic benchmark: https://jsbench.me/oyle77vbpc
+*/
+map (array, callback) {
+  const output = new Array(array.length);
+  for (let i = 0, l = array.length; i < l; i++) {
+      output[i] = callback(array[i], i);
+  }
+  return output;
+},
+    parseSpreadString(spreadString) {
+      try {
+        // Split the spread string at the '..' delimiter
+        const [start, end] = spreadString.split('..').map(Number);
+        
+        // Create an array of numbers from start to end (inclusive)
+        const result = Array.from({ length: end - start + 1 }, (_, index) => start + index);
+        return result;
+      } catch (error) {
+        console.error("Error: Invalid spread string format.");
+        return [];
+      }
+    },
     profanityFilter(str) {
     
         if(window.Widget) {
@@ -3120,7 +3203,10 @@ Q.Util= {
       }
       
       javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='https://mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
-      javascript:(function () { var script = document.createElement('script'); script.src="https://cdn.jsdelivr.net/npm/eruda"; document.body.append(script); script.onload = function () { eruda.init(); } })();
+if(Q.OS.android||Q.OS.iOS){
+  javascript:(function () { var script = document.createElement('script'); script.src="https://cdn.jsdelivr.net/npm/eruda"; document.body.append(script); script.onload = function () { eruda.init(); } })();
+
+}
     }
     if(Q._isObject(id)) {
       options = id;
@@ -3269,13 +3355,16 @@ Q.Util= {
     window.addEventListener('orientationchange',function() {
       setTimeout(function() { window.scrollTo(0,1); }, 0);
     });
-    window.addEventListener(`pointermove`,function(e){
-      var stage = Q.stage(0), 
-      touch = e.changedTouches ?e.changedTouches[0] : e,
-      point =Q.CanvasToStage(touch.pageX,touch.pageY,stage);
-      Q.Mousex=point.x
-      Q.Mousey=point.y
-    })
+    if(options.UseMouse){
+      window.addEventListener(`pointermove`,function(e){
+        var stage = Q.stage(0), 
+        touch = e.changedTouches ?e.changedTouches[0] : e,
+        point =stage.viewport?Q.CanvasToStage(touch.pageX,touch.pageY,stage):false
+        Q.Mousex=point.x
+        Q.Mousey=point.y
+      })
+    }
+
     return Q;
   };
 
@@ -4300,7 +4389,10 @@ if(typeof exports === 'undefined') {
 } else {
   var Quintus = quintusCore(module,"exports");
 }
-//quadtree.js file
+//ppo.js
+!function(e,o){"function"==typeof define&&define.amd?define([],o):"undefined"!=typeof module&&module.exports?module.exports=o():e.ppo=o()}(this,function(){function ppo(){}ppo.isIOS=ppo.isIos=function(){return/iPad|iPhone|iPod/.test(ppo.ua())},ppo.isIPad=function(){return/iPad/.test(ppo.ua())},ppo.isAndroid=function(){return-1<ppo.ua("l").indexOf("android")},ppo.isMobile=function(){return/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ppo.ua("l"))},ppo.isPC=function(){return!this.isMobile()},ppo.isWeixin=function(){return/MicroMessenger/i.test(ppo.ua("l"))},ppo.isIE=function(){return 0<ppo.ieVer()},ppo.ieVersion=ppo.ieVer=function(){var e=ppo.ua(),o=e.indexOf("MSIE ");if(0<o)return parseInt(e.substring(o+5,e.indexOf(".",o)),10);if(0<e.indexOf("Trident/")){var t=e.indexOf("rv:");return parseInt(e.substring(t+3,e.indexOf(".",t)),10)}var n=e.indexOf("Edge/");return 0<n?parseInt(e.substring(n+5,e.indexOf(".",n)),10):-1},ppo.ua=function(e){return e?window.navigator.userAgent.toLowerCase():window.navigator.userAgent},ppo.log=function(e,o){var t=document.getElementById("_ppo_log");if(null===t&&((t=document.createElement("div")).setAttribute("id","_ppo_log"),t.setAttribute("style","position:fixed;left:0;top:0;z-index:9999;padding:4px;"),document.body.appendChild(t)),o)for(var n in o)t.style[n]=o[n];t.innerHTML=e},ppo.logs=function(){if(window.console&&window.console.log){var e=arguments[0]+"",o=parseInt(e.split("&")[1])||10,t=ppo._cache.logs;t[e]||(t[e]={}),t[e].once||(t[e].once=1),t[e].once<=o&&(console.log.apply(console,ppo.args(arguments,1)),t[e].once++)}},ppo.removeConsole=function(e){try{window.console||(window.console={}),window.console.log=window.console.info=window.console.dir=window.console.warn=window.console.trace=ppo.noop,"clear"===e&&window.console.clear&&window.console.clear()}catch(e){}},ppo.open=function(e){var o="_ppo_open_proxy",t=document.getElementById(o)||document.createElement("a");t.setAttribute("id",o),t.setAttribute("href",e),t.setAttribute("target","_blank"),t.style.display="none",t.parentNode||document.body.appendChild(t),this.trigger(t,"click","MouseEvents")},ppo.trigger=function(e,o,t){if(document.createEventObject){var n=document.createEventObject();return e.fireEvent("on"+o,n)}(n=document.createEvent(t||"HTMLEvents")).initEvent(o,!0,!0),e.dispatchEvent(n)},ppo.setTimesout=function(){var e=arguments[0],o=void 0===arguments[1]?0:parseFloat(arguments[1]),t=void 0===arguments[2]?1:parseInt(arguments[2]),n=3<arguments.length?ppo.args(arguments,3):null,r={index:0,times:t,over:!1},i=setInterval(function(){r.index++,r.index>t?clearInterval(i):(r.index==t&&(r.over=!0),e.apply(r,n))},o);return i},ppo.clearTimesout=function(e){clearInterval(e)},ppo.construct=function(){var e=arguments[0];return new(Function.prototype.bind.apply(e,arguments))},ppo.paramsName=function(e){return/\(\s*([\s\S]*?)\s*\)/.exec(e.toString())[1].split(/\s*,\s*/)},ppo.getDate=function(e,o){var t=new Date,n=t.getDate(),r=t.getMonth()+1,i=t.getFullYear(),p=t.getHours(),a=t.getMinutes(),s=t.getSeconds();return n=ppo.fill0(n),i+(e=e||"/")+(r=ppo.fill0(r))+e+n+" "+(p=ppo.fill0(p))+(o=o||":")+(a=ppo.fill0(a))+o+(s=ppo.fill0(s))},ppo.getUrlParam=function(e,o){o=o||window.location.href,e=e.replace(/[\[\]]/g,"\\$&");var t=new RegExp("[?&]"+e+"(=([^&#]*)|&|#|$)").exec(o);return t?t[2]?decodeURIComponent(t[2].replace(/\+/g," ")):"":null},ppo.setUrlParam=function(e,o,t){t=t||window.location.href;var n=new RegExp("([?|&])"+e+"=.*?(&|#|$)","i");if(t.match(n))return t.replace(n,"$1"+e+"="+encodeURIComponent(o)+"$2");var r="";-1!==t.indexOf("#")&&(r=t.replace(/.*#/,"#"),t=t.replace(/#.*/,""));var i=-1!==t.indexOf("?")?"&":"?";return t+i+e+"="+encodeURIComponent(o)+r},ppo.deleteUrlParam=ppo.delUrlParam=function(e,o){var t=(o=o||window.location.href).split("?");if(2<=t.length){for(var n=encodeURIComponent(e)+"=",r=t[1].split(/[&;]/g),i=r.length;0<i--;)-1!==r[i].lastIndexOf(n,0)&&r.splice(i,1);return o=t[0]+(0<r.length?"?"+r.join("&"):"")}return o},ppo.setCookie=function(e,o,t){var n=t&&t.raw?o:encodeURIComponent(o),r=encodeURIComponent(e)+"="+n;if(t){if(t.days){var i=new Date,p=24*t.days*3600*1e3;i.setTime(i.getTime()+p),r+="; expires="+i.toGMTString()}else if(t.hour){i=new Date,p=3600*t.hour*1e3;i.setTime(i.getTime()+p),r+="; expires="+i.toGMTString()}else{p=31536e7;(i=new Date).setTime(i.getTime()+p),r+="; expires="+i.toGMTString()}t.path&&(r+="; path="+t.path),t.domain&&(r+="; domain="+t.domain),t.secure&&(r+="; true")}document.cookie=r},ppo.getCookie=function(e){for(var o=encodeURIComponent(e)+"=",t=document.cookie.split(";"),n=0;n<t.length;n++){for(var r=t[n];" "===r.charAt(0);)r=r.substring(1,r.length);if(0===r.indexOf(o))return decodeURIComponent(r.substring(o.length,r.length))}return null},ppo.deleteCookie=ppo.delCookie=function(e){this.setCookie(e,"",{hour:-1})},ppo.randomColor=function(){return"#"+("00000"+(16777216*Math.random()<<0).toString(16)).slice(-6)},ppo.randomFromArray=ppo.randomfArr=function(e){return e[Math.floor(Math.random()*e.length)]},ppo.randomFromA2B=ppo.randomA2B=function(e,o,t){var n=Math.random()*(o-e)+e;return t?Math.floor(n):n},ppo.randomKey=function(e){var o="",t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";e=e||6;for(var n=0;n<e;n++)o+=t.charAt(Math.floor(Math.random()*t.length));return o},ppo.floor=function(e,o){return o=o||0,Math.floor(e*Math.pow(10,o))/Math.pow(10,o)},ppo.fill0=function(e){return(e=parseFloat(e))<10?"0"+e:e},ppo.currency=function(e){return m=m||0,Math.floor(n*Math.pow(10,m))/Math.pow(10,m)},ppo.lockTouch=function(){function o(e,o){return e.target.tagName!=o.toUpperCase()&&e.target.tagName!=o.toLowerCase()}function e(e){o(e,"input")&&o(e,"textarea")&&o(e,"select")&&o(e,"menus")&&e.preventDefault()}document.addEventListener("touchmove",function(e){e.preventDefault()},!1),document.addEventListener("touchstart",e,!1),document.addEventListener("touchend",e,!1)},ppo.loadjs=function(e,o,t){var n,r;(r="function"==typeof o?(n=this.hash(e+"")+"",o):void 0===o?(n=this.hash(e+"")+"",null):(n=o+"",t),ppo._cache.urls[n])?r&&r():("string"==typeof e?_insertScript:_insertScripts).call(this,e,function(){ppo._cache.urls[n]=!0,r&&r()})},ppo.uuid=function(){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(e){var o=16*Math.random()|0;return("x"==e?o:3&o|8).toString(16)})},ppo.hash=function(e){var o,t=0;if(0===(e+="").length)return t;for(o=0;o<e.length;o++)t=(t<<5)-t+e.charCodeAt(o),t|=0;return t},ppo.judge=ppo.judgment=function(e,o,t){if(!this.isTypeof(o,"array"))return!1;for(var n in o)if(t){if(e===o[n])return!0}else if(e==o[n])return!0;return!1},ppo.isTypeof=function(e,o){return Object.prototype.toString.call(e).slice(8,-1).toLowerCase()===o},ppo.toJSON=ppo.tojson=ppo.toJson=function(res){if(!res)return null;if("string"!=typeof res)return this.isTypeof(res.json,"function")?res.json():res;try{return JSON.parse(res)}catch(e){return eval("("+res+")")}},ppo.toArray=function(e,o){return e?ppo.isTypeof(e,"array")?e:ppo.isTypeof(e,"string")&&0<e.indexOf(",")?e.split(","):o&&ppo.isTypeof(e,"string")?e.split(o):[e]:null},ppo.args=function(e,o){return Array.prototype.slice.call(e,o||0)},ppo.delLastComma=ppo.deleteLastComma=function(e){return e=","===(e+="").slice(e.length-1)?e.slice(0,-1):e},ppo.trash={clear:function(){for(var e in ppo.trash)"log"!==e&&"clear"!==e&&delete ppo.trash[e]},log:function(){for(var e in ppo.trash)"log"!==e&&"clear"!==e&&console.log("ppo.trash:: ",e,ppo.trash[e])}},ppo.noop=function(){},ppo._cache={urls:{},logs:{}};var _insertScripts=function(e,o){for(var t=0;t<e.length;t++)_insertScript(e[t],r);var n=0;function r(){++n>=e.length&&o&&o()}},_insertScript=function(e,o){var t=document.createElement("script");t.setAttribute("type","text/javascript"),t.setAttribute("src",e),document.getElementsByTagName("head")[0].appendChild(t),/msie/.test(ppo.ua("l"))?t.onreadystatechange=function(){"loaded"!=this.readyState&&"complete"!=this.readyState||o()}:/gecko/.test(ppo.ua("l"))?t.onload=function(){o()}:setTimeout(function(){o()},50)};return ppo});
+//countup.js file
+!function(t,i){"object"==typeof exports&&"undefined"!=typeof module?i(exports):"function"==typeof define&&define.amd?define(["exports"],i):i((t="undefined"!=typeof globalThis?globalThis:t||self).countUp={})}(this,(function(t){"use strict";var i=function(){return i=Object.assign||function(t){for(var i,n=1,s=arguments.length;n<s;n++)for(var e in i=arguments[n])Object.prototype.hasOwnProperty.call(i,e)&&(t[e]=i[e]);return t},i.apply(this,arguments)},n=function(){function t(t,n,s){var e=this;this.endVal=n,this.options=s,this.version="2.6.2",this.defaults={startVal:0,decimalPlaces:0,duration:2,useEasing:!0,useGrouping:!0,useIndianSeparators:!1,smartEasingThreshold:999,smartEasingAmount:333,separator:",",decimal:".",prefix:"",suffix:"",enableScrollSpy:!1,scrollSpyDelay:200,scrollSpyOnce:!1},this.finalEndVal=null,this.useEasing=!0,this.countDown=!1,this.error="",this.startVal=0,this.paused=!0,this.once=!1,this.count=function(t){e.startTime||(e.startTime=t);var i=t-e.startTime;e.remaining=e.duration-i,e.useEasing?e.countDown?e.frameVal=e.startVal-e.easingFn(i,0,e.startVal-e.endVal,e.duration):e.frameVal=e.easingFn(i,e.startVal,e.endVal-e.startVal,e.duration):e.frameVal=e.startVal+(e.endVal-e.startVal)*(i/e.duration);var n=e.countDown?e.frameVal<e.endVal:e.frameVal>e.endVal;e.frameVal=n?e.endVal:e.frameVal,e.frameVal=Number(e.frameVal.toFixed(e.options.decimalPlaces)),e.printValue(e.frameVal),i<e.duration?e.rAF=requestAnimationFrame(e.count):null!==e.finalEndVal?e.update(e.finalEndVal):e.options.onCompleteCallback&&e.options.onCompleteCallback()},this.formatNumber=function(t){var i,n,s,a,o=t<0?"-":"";i=Math.abs(t).toFixed(e.options.decimalPlaces);var r=(i+="").split(".");if(n=r[0],s=r.length>1?e.options.decimal+r[1]:"",e.options.useGrouping){a="";for(var l=3,u=0,h=0,p=n.length;h<p;++h)e.options.useIndianSeparators&&4===h&&(l=2,u=1),0!==h&&u%l==0&&(a=e.options.separator+a),u++,a=n[p-h-1]+a;n=a}return e.options.numerals&&e.options.numerals.length&&(n=n.replace(/[0-9]/g,(function(t){return e.options.numerals[+t]})),s=s.replace(/[0-9]/g,(function(t){return e.options.numerals[+t]}))),o+e.options.prefix+n+s+e.options.suffix},this.easeOutExpo=function(t,i,n,s){return n*(1-Math.pow(2,-10*t/s))*1024/1023+i},this.options=i(i({},this.defaults),s),this.formattingFn=this.options.formattingFn?this.options.formattingFn:this.formatNumber,this.easingFn=this.options.easingFn?this.options.easingFn:this.easeOutExpo,this.startVal=this.validateValue(this.options.startVal),this.frameVal=this.startVal,this.endVal=this.validateValue(n),this.options.decimalPlaces=Math.max(this.options.decimalPlaces),this.resetDuration(),this.options.separator=String(this.options.separator),this.useEasing=this.options.useEasing,""===this.options.separator&&(this.options.useGrouping=!1),this.el="string"==typeof t?document.getElementById(t):t,this.el?this.printValue(this.startVal):this.error="[CountUp] target is null or undefined","undefined"!=typeof window&&this.options.enableScrollSpy&&(this.error?console.error(this.error,t):(window.onScrollFns=window.onScrollFns||[],window.onScrollFns.push((function(){return e.handleScroll(e)})),window.onscroll=function(){window.onScrollFns.forEach((function(t){return t()}))},this.handleScroll(this)))}return t.prototype.handleScroll=function(t){if(t&&window&&!t.once){var i=window.innerHeight+window.scrollY,n=t.el.getBoundingClientRect(),s=n.top+window.pageYOffset,e=n.top+n.height+window.pageYOffset;e<i&&e>window.scrollY&&t.paused?(t.paused=!1,setTimeout((function(){return t.start()}),t.options.scrollSpyDelay),t.options.scrollSpyOnce&&(t.once=!0)):(window.scrollY>e||s>i)&&!t.paused&&t.reset()}},t.prototype.determineDirectionAndSmartEasing=function(){var t=this.finalEndVal?this.finalEndVal:this.endVal;this.countDown=this.startVal>t;var i=t-this.startVal;if(Math.abs(i)>this.options.smartEasingThreshold&&this.options.useEasing){this.finalEndVal=t;var n=this.countDown?1:-1;this.endVal=t+n*this.options.smartEasingAmount,this.duration=this.duration/2}else this.endVal=t,this.finalEndVal=null;null!==this.finalEndVal?this.useEasing=!1:this.useEasing=this.options.useEasing},t.prototype.start=function(t){this.error||(t&&(this.options.onCompleteCallback=t),this.duration>0?(this.determineDirectionAndSmartEasing(),this.paused=!1,this.rAF=requestAnimationFrame(this.count)):this.printValue(this.endVal))},t.prototype.pauseResume=function(){this.paused?(this.startTime=null,this.duration=this.remaining,this.startVal=this.frameVal,this.determineDirectionAndSmartEasing(),this.rAF=requestAnimationFrame(this.count)):cancelAnimationFrame(this.rAF),this.paused=!this.paused},t.prototype.reset=function(){cancelAnimationFrame(this.rAF),this.paused=!0,this.resetDuration(),this.startVal=this.validateValue(this.options.startVal),this.frameVal=this.startVal,this.printValue(this.startVal)},t.prototype.update=function(t){cancelAnimationFrame(this.rAF),this.startTime=null,this.endVal=this.validateValue(t),this.endVal!==this.frameVal&&(this.startVal=this.frameVal,null==this.finalEndVal&&this.resetDuration(),this.finalEndVal=null,this.determineDirectionAndSmartEasing(),this.rAF=requestAnimationFrame(this.count))},t.prototype.printValue=function(t){var i;if(this.el){var n=this.formattingFn(t);if(null===(i=this.options.plugin)||void 0===i?void 0:i.render)this.options.plugin.render(this.el,n);else if("INPUT"===this.el.tagName)this.el.value=n;else"text"===this.el.tagName||"tspan"===this.el.tagName?this.el.textContent=n:this.el.innerHTML=n}},t.prototype.ensureNumber=function(t){return"number"==typeof t&&!isNaN(t)},t.prototype.validateValue=function(t){var i=Number(t);return this.ensureNumber(i)?i:(this.error="[CountUp] invalid start or end value: ".concat(t),null)},t.prototype.resetDuration=function(){this.startTime=null,this.duration=1e3*Number(this.options.duration),this.remaining=this.duration},t}();t.CountUp=n,Object.defineProperty(t,"__esModule",{value:!0})}));//quadtree.js file
 /* https://github.com/timohausmann/quadtree-js.git v1.2.5 */
 !function(){function o(t,e,s,i){this.max_objects=e||10,this.max_levels=s||4,this.level=i||0,this.bounds=t,this.objects=[],this.nodes=[]}o.prototype.split=function(){var t=this.level+1,e=this.bounds.width/2,s=this.bounds.height/2,i=this.bounds.x,h=this.bounds.y;this.nodes[0]=new o({x:i+e,y:h,width:e,height:s},this.max_objects,this.max_levels,t),this.nodes[1]=new o({x:i,y:h,width:e,height:s},this.max_objects,this.max_levels,t),this.nodes[2]=new o({x:i,y:h+s,width:e,height:s},this.max_objects,this.max_levels,t),this.nodes[3]=new o({x:i+e,y:h+s,width:e,height:s},this.max_objects,this.max_levels,t)},o.prototype.getIndex=function(t){var e=[],s=this.bounds.x+this.bounds.width/2,i=this.bounds.y+this.bounds.height/2,h=t.y<i,o=t.x<s,n=t.x+t.width>s,d=t.y+t.height>i;return h&&n&&e.push(0),o&&h&&e.push(1),o&&d&&e.push(2),n&&d&&e.push(3),e},o.prototype.insert=function(t){var e,s=0;if(this.nodes.length)for(e=this.getIndex(t),s=0;s<e.length;s++)this.nodes[e[s]].insert(t);else if(this.objects.push(t),this.objects.length>this.max_objects&&this.level<this.max_levels){for(this.nodes.length||this.split(),s=0;s<this.objects.length;s++){e=this.getIndex(this.objects[s]);for(var i=0;i<e.length;i++)this.nodes[e[i]].insert(this.objects[s])}this.objects=[]}},o.prototype.retrieve=function(t){var e=this.getIndex(t),s=this.objects;if(this.nodes.length)for(var i=0;i<e.length;i++)s=s.concat(this.nodes[e[i]].retrieve(t));return s=s.filter(function(t,e){return s.indexOf(t)>=e})},o.prototype.clear=function(){this.objects=[];for(var t=0;t<this.nodes.length;t++)this.nodes.length&&this.nodes[t].clear();this.nodes=[]},"undefined"!=typeof module&&void 0!==module.exports?module.exports=o:window.Quadtree=o}();
 //event-lite.js file
@@ -4750,7 +4842,7 @@ Quintus["2D"] = function(Q) {
         vy: 0,
         ax: 0,
         ay: 0,
-        gravity: 1,
+        gravity: entity.p.gravity?entity.p.gravity:1,
         collisionMask: Q.SPRITE_DEFAULT
       });
       entity.on('step',this,"step");
@@ -4876,6 +4968,12 @@ Quintus.Anim = function(Q) {
   Q._animations = {};
   Q.animations = function(sprite,animations) {
     if(!Q._animations[sprite]) { Q._animations[sprite] = {}; }
+    Object.keys(animations).forEach((x)=>{
+      if(!Array.isArray(animations[x]["frames"])){
+        animations[x]["frames"]=Q.Util.parseSpreadString(animations[x]["frames"])
+  
+      }
+    })
     Q._extend(Q._animations[sprite],animations);
   };
 
@@ -4902,7 +5000,7 @@ Quintus.Anim = function(Q) {
           p = entity.p;
       if(p.animation) {
         var anim = Q.animation(p.sprite,p.animation),
-            rate = anim.rate || p.rate,
+            rate = (1/anim.rate) || (1/p.rate),
             stepped = 0;
         p.animationTime += dt;
         if(p.animationChanged) {
@@ -6467,13 +6565,20 @@ Quintus.Input = function(Q) {
     defaults: {
       speed: 200,
       jumpSpeed: -300,
-      collisions: []
+      collisions: [],
+      Controls:{
+        left:"a",
+        right:"d",
+        down:"S",
+        up:"w"
+      }
     },
 
     added: function() {
       var p = this.entity.p;
 
       Q._defaults(p,this.defaults);
+      if(Q.ControlOveride) { Q._extend(p.Controls,Q.ControlOveride); }
 
       this.entity.on("step",this,"step");
       this.entity.on("bump.bottom",this,"landed");
@@ -6507,14 +6612,13 @@ Quintus.Input = function(Q) {
               }
             }
           }
-
           // Don't climb up walls.
           if(collision !== null && collision.normalY > -0.3 && collision.normalY < 0.3) {
             collision = null;
           }
         }
 
-        if(Q.inputs['left']) {
+        if(Q.inputs['left']||Q.inputs[p.Controls.left]) {
           p.direction = 'left';
           if(collision && p.landed > 0) {
             p.vx = p.speed * collision.normalY;
@@ -6522,7 +6626,7 @@ Quintus.Input = function(Q) {
           } else {
             p.vx = -p.speed;
           }
-        } else if(Q.inputs['right']) {
+        } else if(Q.inputs['right']||Q.inputs[p.Controls.right]) {
           p.direction = 'right';
           if(collision && p.landed > 0) {
             p.vx = -p.speed * collision.normalY;
@@ -6537,16 +6641,16 @@ Quintus.Input = function(Q) {
           }
         }
 
-        if(p.landed > 0 && (Q.inputs['up'] || Q.inputs['action']) && !p.jumping) {
+        if(p.landed > 0 && (Q.inputs['up'] || Q.inputs['action']||Q.inputs[p.Controls.up]) && !p.jumping) {
           p.vy = p.jumpSpeed;
           p.landed = -dt;
           p.jumping = true;
-        } else if(Q.inputs['up'] || Q.inputs['action']) {
+        } else if(Q.inputs['up'] || Q.inputs['action']||Q.inputs[p.Controls.up]) {
           this.entity.trigger('jump', this.entity);
           p.jumping = true;
         }
 
-        if(p.jumping && !(Q.inputs['up'] || Q.inputs['action'])) {
+        if(p.jumping && !(Q.inputs['up'] || Q.inputs['action']||Q.inputs[p.Controls.up])) {
           p.jumping = false;
           this.entity.trigger('jumped', this.entity);
           if(p.vy < p.jumpSpeed / 3) {
@@ -6576,57 +6680,60 @@ Quintus.Input = function(Q) {
    * @for Quintus.Input
    */
   Q.component("stepControls", {
-
+    defaults: {
+      collisions: [],
+      gravity:0,
+      Controls:{
+        left:"a",
+        right:"d",
+        down:"S",
+        up:"w"
+      }
+    },
     added: function() {
       var p = this.entity.p;
-
-      if(!p.stepDistance) { p.stepDistance = 32; }
-      if(!p.stepDelay) { p.stepDelay = 0.2; }
-      p.collisionMask=Q.SPRITE_DEFAULT
+      Q._defaults(p,this.defaults);
+      if(Q.ControlOveride) { Q._extend(p.Controls,Q.ControlOveride); }
+      if(!p.stepDistance) { p.stepDistance = 5; }
+      if(!p.stepDelay) { p.stepDelay =0; }
       p.stepWait = 0;
       this.entity.on("step",this,"step");
       this.entity.on("hit", this,"collision");
     },
-
+    // This is enough to have proper top down collisions sorted
     collision: function(col) {
       var p = this.entity.p;
-
       if(p.stepping) {
         p.stepping = false;
-        p.x = p.origX;
-        p.y = p.origY;
       }
 
     },
 
     step: function(dt) {
-      var p = this.entity.p,moved = false;
+      let p = this.entity.p,moved = false;
       p.stepWait -= dt;
-
       if(p.stepping) {
         p.x += p.diffX * dt / p.stepDelay;
         p.y += p.diffY * dt / p.stepDelay;
       }
-
       if(p.stepWait > 0) { return; }
       if(p.stepping) {
         p.x = p.destX;
         p.y = p.destY;
       }
       p.stepping = false;
-
       p.diffX = 0;
       p.diffY = 0;
-
-      if(Q.inputs['left']) {
-        p.diffX = -p.stepDistance;
-      } else if(Q.inputs['right']) {
-        p.diffX = p.stepDistance;
+      // ARROW KEYS and WASD are defaults,
+      if(Q.inputs[p.Controls.left]||Q.inputs["left"]) {
+          p.diffX = -p.stepDistance;
       }
-
-      if(Q.inputs['up']) {
+      else if(Q.inputs[p.Controls.right]||Q.inputs["right"]) {
+          p.diffX = p.stepDistance;
+      }
+      if(Q.inputs[p.Controls.up]||Q.inputs["up"]) {
         p.diffY = -p.stepDistance;
-      } else if(Q.inputs['down']) {
+      } else if(Q.inputs[p.Controls.down]||Q.inputs["down"]) {
         p.diffY = p.stepDistance;
       }
 
@@ -6638,7 +6745,7 @@ Quintus.Input = function(Q) {
         p.destY = p.y + p.diffY;
         p.stepWait = p.stepDelay;
       }
-
+    
     }
 
   });
@@ -6716,7 +6823,7 @@ Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
   if (objectsWithPositiveMark.length === 1) {
     return objectsWithPositiveMark[0];
   } else {
-    Q.Active={Rendered:objectsWithPositiveMark,Count:objectsWithPositiveMark.length}
+    Q.ActiveObjects={Rendered:objectsWithPositiveMark,Count:objectsWithPositiveMark.length}
   }
 }
   /**
@@ -6955,9 +7062,15 @@ Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
       this.removeList = [];
       this.grid = {};
       this._collisionLayers = [];
-
+      this.QuadTree= new Quadtree({
+        x: 0,
+        y: 0,
+        width: 900,
+        height: 900
+        
+      });
       this.time = 0;
-
+      
       this.defaults['w'] = Q.width;
       this.defaults['h'] = Q.height;
 
@@ -6971,6 +7084,7 @@ Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
       if(this.options.sort && !Q._isFunction(this.options.sort)) {
           this.options.sort = function(a,b) { return ((a.p && a.p.z) || -1) - ((b.p && b.p.z) || -1); };
       }
+      
     },
 
     destroyed: function() {
@@ -7122,7 +7236,6 @@ Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
       if(container) {
         container.children.push(itm);
       }
-
       itm.grid = {};
 
 
@@ -7473,7 +7586,6 @@ Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
 
         if(isContainer || !item.container) {
           item.update(dt);
-  
           Q._generateCollisionPoints(item);
           this.regrid(item);
         }
@@ -7490,6 +7602,11 @@ Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
 
       this.trigger("prestep",dt);
       this.updateSprites(this.items,dt);
+      //Dynamically Updated Quad Tree
+      //this.QuadTree.clear();
+      for(var i=0;i<this.items.length;i=i+1) {
+        this.QuadTree.insert(this.items[i].p)
+      }
       this.trigger("step",dt);
 
       if(this.removeList.length > 0) {
@@ -7558,7 +7675,8 @@ Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
         // Don't render sprites with containers (sprites do that themselves)
         // Also don't render if not onscreen
         if(!item.container && (item.p.renderAlways || item.mark >= this.time)) {
-          Q.getObjectOrCountWithPositiveMark(this.items,this.time)
+            Q.getObjectOrCountWithPositiveMark(this.items,this.time)
+            //Q.gui.add(item,item.p.x)
           item.render(ctx);
         }
       }
@@ -8101,6 +8219,14 @@ Quintus.Sprites = function(Q) {
    @for Quintus.Sprites
    @final
   */
+
+/**
+ * Box2d sprite type
+ * @property Q.SPRITE_BOX2D
+ * @for Quintus.Sprites
+ * @final
+ */
+  Q.SPRITE_BOX2D=128
   Q.SPRITE_ALL   = 0xFFFF;
 
 
@@ -8277,7 +8403,7 @@ Quintus.Sprites = function(Q) {
         frame: 0,
         type: Q.SPRITE_DEFAULT | Q.SPRITE_ACTIVE,
         name: '',
-        sort:true,
+        sort:false,
         spriteProperties: {}
       },defaultProps);
 
@@ -8287,6 +8413,9 @@ Quintus.Sprites = function(Q) {
       Q._extend(this.p,props);
       if(this.p.type==Q.SPRITE_PARTICLE){
         this.add("tween");
+      }
+      if(this.p.type==Q.SPRITE_BOX2D){
+        this.add("physics")
       }
       this.size();
       this.p.id = this.p.id || Q._uniqueId();
@@ -8476,7 +8605,6 @@ Quintus.Sprites = function(Q) {
         ctx.fillRect(-p.cx,-p.cy,p.w,p.h);
       }
     },
-
     debugRender: function(ctx) {
       if(!this.p.points) {
         Q._generatePoints(this);
@@ -8514,7 +8642,12 @@ Quintus.Sprites = function(Q) {
         ctx.restore();
       }
     },
-
+    destroyed:function(){
+      //Destroyed does not handle Box2d  to keep things clean we handle it in the background 
+      if(this.p.type==Q.SPRITE_BOX2D){
+        Q.stage(0).world.destroyBody(this)
+      }
+    },
     /**
      Update method is called each step with the time elapsed since the last step.
 
@@ -8542,8 +8675,11 @@ Quintus.Sprites = function(Q) {
       if(this.p.opacity<=0&&this.p.type==Q.SPRITE_PARTICLE){
         this.destroy();
       }
+
       // Reset collisions if we're tracking them
-      if(this.p.collisions) { this.p.collisions = []; }
+      if(this.p.collisions) {
+        this.p.collisions = [];
+      }
     },
 
     /*
@@ -8832,7 +8968,6 @@ Quintus.TMX = function(Q) {
      },parseProperties(layer));
 
    var TileLayerClass = tileLayerProperties.Class || 'TileLayer';
-
    if(tileLayerProperties['collision']) {
      stage.collisionLayer(new Q[TileLayerClass](tileLayerProperties));
    } else {
@@ -8855,7 +8990,12 @@ Quintus.TMX = function(Q) {
 
      var className = properties['Class'];
      if(!className) { throw "Invalid TMX Object Class: " + className + " GID:" + gid; }
-
+     Object.keys(overrideProperties).forEach((x)=>{
+      if(Q.Util.isStringArray(overrideProperties[x])){
+        overrideProperties[x]=JSON.parse(overrideProperties[x]);
+        
+      }
+    })
      var p = Q._extend(Q._extend({ x: x, y: y }, properties), overrideProperties);
 
      // Offset the sprite
@@ -10346,15 +10486,27 @@ Quintus.Physics = function(Q) {
     gravityY: 9.8,
     scale: 30,
     velocityIterations: 8,
-    positionIterations: 3
+    positionIterations: 3,
+    isGravity:true
   };
 
   Q.component('world',{
     added: function() {
-      this.opts = Q._extend({},defOpts);
+      //If This game has world physics make these settings the default else just use the built in
+      if(Q.WorldPhysics){
+        this.opts = Q._extend(defOpts,Q.WorldPhysics);
+        console.log(`Physical world settings Does exist override defaults `)
+        console.log(this.opts)
+      }else{
+        this.opts = Q._extend({},defOpts);
+        console.log(`Physical world settings does not exist `)
+      }
+      
       this._gravity = new B2d.Vec(this.opts.gravityX,
                                  this.opts.gravityY);
-      this._world = new B2d.World(this._gravity, true);
+      this._world = new B2d.World(this._gravity, this.opts.isGravity);
+      
+      
 
       var physics = this,
           boundBegin = function(contact) { physics.beginContact(contact); },
@@ -10467,11 +10619,21 @@ Quintus.Physics = function(Q) {
             
       def.position.x = p.x / scale;
       def.position.y = p.y / scale;
-      def.type = p.type === 'static' ? 
-                 B2d.Body.b2_staticBody :
-                 B2d.Body.b2_dynamicBody;
+      def.type = p.type === 'static' ? B2d.Body.b2_staticBody :B2d.Body.b2_dynamicBody;
       def.active = true;
-      
+      def.allowSleep=p.cansleep?p.cansleep:false
+      def.fixedRotation=p.fixedrotation?p.fixedRotation:false
+      def.bullet=p.bullet?p.bullet:false
+      if(p.mass){
+        def.mass=p.mass
+      }
+      if(p.linearDamping){
+        def.m_linearDamping=p.linearDamping
+      }
+      if(p.m_angularDamping){
+        def.m_angularDamping=p.angularDamping
+
+      }
       this._body = stage.world.createBody(def); 
       this._body.SetUserData(entity);
       fixtureDef.density = p.density || ops.density;

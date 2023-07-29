@@ -21,7 +21,9 @@
     }
   ],
   "version": "0.2.0",
-  "scripts": {},
+  "scripts": {
+    "build":"node build.js"
+  },
   "dependencies": {
     "shelljs": "^0.8.5"
   }
