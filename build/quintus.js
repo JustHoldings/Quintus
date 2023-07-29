@@ -108,7 +108,23 @@ var Quintus = exportTarget[key] = function(opts) {
   var Q = function(selector,scope,options) {
     return Q.select(selector,scope,options);
   };
-
+  /**
+   Global Event Emitter
+   @method Q.Events
+   @for Quintus
+  */
+  Q.EventClass=function(){}
+  EventLite.mixin(Q.EventClass.prototype);  // import event methods
+  Q.Events= new Q.EventClass();
+  document.addEventListener('pointerup',function(e){
+    Q.Events.emit(`pointerup`,e)
+  });
+  document.addEventListener('pointerdown',function(e){
+    Q.Events.emit(`pointerdown`,e)
+  });
+  document.addEventListener('pointerdown',function(e){
+    Q.Events.emit(`pointerdown`,e)
+  });
   /**
    Default no-op select method. Replaced with the Quintus.Scene class
 
@@ -775,6 +791,1429 @@ Q.GetOS=function(){
 
   return Q._filterObjectKeys(Q.OS);
 }
+Q.stime=function(timeString) {
+  // Define conversion factors for each time unit to milliseconds
+  const timeUnits = {
+    msecond: 1,
+    second: 1000,
+    minute: 60 * 1000,
+    hour: 60 * 60 * 1000,
+    day: 24 * 60 * 60 * 1000,
+    week: 7 * 24 * 60 * 60 * 1000,
+    month: 30 * 24 * 60 * 60 * 1000, // Approximation, not precise
+    year: 365 * 24 * 60 * 60 * 1000 // Approximation, not precise
+  };
+
+  // Extract the numeric value and the unit from the input string
+  const [value, unit] = timeString.split(' ');
+
+  // Convert the value to a number and check if it's a valid number
+  const numericValue = parseFloat(value);
+  if (isNaN(numericValue)) {
+    throw new Error('Invalid input. Please provide a valid time string, e.g., "1 day", "1 second", etc.');
+  }
+
+  // Get the conversion factor for the specified unit (if it exists)
+  const conversionFactor = timeUnits[unit.toLowerCase()];
+  if (!conversionFactor) {
+    throw new Error(`Invalid time unit "${unit}". Please use one of the following units: ${Object.keys(timeUnits).join(', ')}.`);
+  }
+
+  // Calculate the time in milliseconds
+  const timeInMilliseconds = numericValue * conversionFactor;
+
+  return timeInMilliseconds;
+}
+  /**
+         Q.Timer
+
+        Super Flexibile game timer with call back functions to do things when the timer starts
+        While the timer is running and When the timer finishes running.
+
+        let TestTimer = new Q.Timer(10, //* How many times to count for the timer
+        Q.stime("1 second"), //* Interval between counts
+        (progress)=>{
+          console.log(`Current Progress is ${progress}`)
+        }, //* Run this everytime the Timer ticks
+        ()=>{
+          console.log(`My timer Ended`)
+        },//* Run this when the timer ends
+        ()=>{
+          console.log(`My Timer Started`)
+        }//* Run this everytime the Timer starts
+        );
+*/
+Q.Timer=function(duration,onstep, onend,onstart) {
+  this.duration =Q.stime(duration)// Duration of the timer in seconds
+  this.interval=Q.stime(`1 second`)
+  this.onstep=onstep
+  this.onend=onend
+  this.onstart=onstart
+  this.ID=null
+  this.progress=null
+  this.start()
+  console.log(arguments[0])
+}
+
+Q.Timer.prototype.start = function() {
+  this.startime=Date.now()
+  if (typeof this.onstep === 'function') {
+    this.onstart();
+  }
+  this.ID=setInterval(() => {
+    const elapsedTime = Date.now() - this.startime;
+    this.progress = Math.min((elapsedTime / (this.duration)) * 100, 100);
+    if (typeof this.onstep === 'function') {
+      this.onstep(this.progress);
+    }
+    if(this.progress>=100){
+      if (typeof this.onend === 'function') {
+        this.onend();
+      }
+      clearInterval(this.ID);
+    }
+  },this.interval);
+
+};
+
+Q.Timer.prototype.end=function() {
+  if (this.ID) {
+    clearInterval(this.ID);
+    this.ID = null;
+  }
+}
+Math.TAU = Math.PI * 2;
+Math.HPI = Math.PI / 2;
+Math.QPI = Math.PI / 4;
+
+Q.Util= {
+
+    SYMBOL_LISTENERS: Symbol(),
+
+    profanityFilter(str) {
+    
+        if(window.Widget) {
+
+            let filter = window.Widget && window.Widget.filter;
+
+            if(!filter) return str;
+
+            return filter(str);
+
+        } else return str;
+
+    },
+
+    copyToClipboard(input) {
+
+        input.select();
+        
+        document.execCommand("copy");
+
+    },
+
+    modulo: function(value, max) {
+
+        return value - max * Math.floor(value / max);
+
+    },
+    
+    promise() {
+
+        let resolve, reject;
+
+        let promise = new Promise(function(_resolve, _reject) {
+
+            resolve = _resolve;
+            reject = _reject;
+
+        });
+
+        promise.resolve = resolve;
+        promise.reject = reject;
+
+        promise.cancelled = false;
+
+        promise.cancel = () => {
+            
+            promise.cancelled = true;
+            promise.resolve(null);
+
+        };
+
+        return promise;
+
+    },
+
+
+    trigger(object, name) {
+
+        let allListeners = object[this.SYMBOL_LISTENERS];
+
+        if (!allListeners) return;
+
+        let listeners = allListeners[name];
+
+        if (!listeners) return;
+
+    },
+
+    on(object, name) {
+
+
+
+
+    },
+
+    track(object, key, value) {
+
+        let current = object[key];
+
+        if (current === value) return false;
+
+        object[key] = value;
+
+        return true;
+
+    },
+
+    changes(next, prev) {
+
+        let result = {};
+
+        for (var key in next) {
+
+            // if (prev[key] !== next[key]) {
+            if (!this.isEqual(prev[key], next[key])) {
+
+                result[key] = next[key];
+
+            }
+
+        }
+
+        return result;
+
+    },
+    hhmmss(time) {
+
+        let hours = time / 3600 | 0;
+        let minutes = time / 60 | 0;
+        let seconds = time % 60;
+
+        return (hours ? String(hours).padStart(2, "0") + ":" : "") + String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
+
+    },
+
+    mmss(time) {
+
+        let minutes = time / 60 | 0;
+        let seconds = time % 60;
+
+        return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
+
+    },
+
+    hexToString(hex) {
+
+        return "#" + hex.toString(16);
+
+    },
+
+    intToHexColor(hex) {
+
+        let a = this.intToRGBA(hex);
+
+        return "#" +
+            (a[0] * 255).toString(16).padStart(2, "0") +
+            (a[1] * 255).toString(16).padStart(2, "0") +
+            (a[2] * 255).toString(16).padStart(2, "0");
+
+    },
+
+    /* https://stackoverflow.com/questions/12043187/how-to-check-if-hex-color-is-too-black */
+    
+    hexToLuma(hex) {
+        var c = hex.substring(1); // strip #
+        var rgb = parseInt(c, 16); // convert rrggbb to decimal
+        var r = (rgb >> 16) & 0xff; // extract red
+        var g = (rgb >> 8) & 0xff; // extract green
+        var b = (rgb >> 0) & 0xff; // extract blue
+
+        var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+
+        return luma / 255;
+    },
+
+    intToRGBA(color) {
+
+        let temp = [];
+
+        temp[0] = (color / 65536 % 256 | 0) / 255.0;
+        temp[1] = (color / 256 % 256 | 0) / 255.0;
+        temp[2] = (color % 256) / 255.0;
+        temp[3] = 1.0;
+
+        return temp;
+
+    },
+
+    RGBToInt(rgb) {
+
+        return rgb[2] * 255 | (rgb[1] * 255 << 8) | (rgb[0] * 255 << 16);
+
+    },
+
+    arrayCall(array, methodName, a = 0, b = 0, c = 0) {
+
+        for (let i = 0; i < array.length; i++) array[i][methodName](a, b, c);
+
+    },
+
+    arraySet(array, propertyName, value) {
+
+        for (let i = 0; i < array.length; i++) array[i][propertyName] = value;
+
+    },
+
+    pullOne(array, element) {
+
+        let index = array.indexOf(element);
+
+        if (index < 0) return;
+
+        array.splice(index, 1);
+
+    },
+
+    hash: function(string) {
+
+        var hash = 0,
+            i, chr;
+
+        if (string.length === 0) return hash;
+
+        for (i = 0; i < string.length; i++) {
+            chr = string.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+
+        return hash;
+
+    },
+
+    dcopy: function(o) {
+
+        return JSON.parse(JSON.stringify(o));
+
+    },
+
+    escapeHTML: function(s) {
+        return s.replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    },
+
+    unescapeHTML: function(s) {
+        return s.replace('&amp;', '&')
+            .replace('&quot;', '"')
+            .replace('&lt;', "<")
+            .replace('&gt;', ">");
+    },
+
+    captureTrace: function() {
+
+        try {
+
+            throw new Error();
+
+        } catch (e) {
+
+            return JSON.stringify(e.stack, null, 2);
+
+        }
+
+    },
+
+    ucfirst: function(str) {
+
+        return str[0].toUpperCase() + str.slice(1);
+
+    },
+
+    dirrow: function(direction, angles) {
+
+        angles = angles || 8;
+
+        var fo = -0.5 * Math.TAU / angles;
+
+        return (Utils.circWrap(direction - fo) / Math.TAU) * angles | 0;
+
+    },
+
+    dirrowp: function(direction, angles) {
+
+        direction = Utils.atan2(Math.sin(direction) * 1.456, Math.cos(direction));
+
+        angles = angles || 8;
+
+        var fo = -0.5 * Math.TAU / angles;
+
+        return (Utils.circWrap(direction - fo) / Math.TAU) * angles | 0;
+
+    },
+
+    tryParseJSON: function(json) {
+
+        try {
+
+            return JSON.parse(json);
+
+        } catch (e) {
+
+            return null;
+
+        }
+
+    },
+
+    repeatInterval: function(callback, times, interval) {
+        var counter = 1;
+
+        if (counter >= times) return;
+
+        var timer = setInterval(function() {
+
+            callback(counter++);
+
+            if (counter >= times) {
+
+                clearInterval(timer);
+
+            };
+
+        }, interval * 1000);
+
+    },
+
+    create: function(prototype, args) {
+
+        var object = Object.create(prototype);
+
+        return this.extend(object, args);
+
+    },
+
+    strTemplate: function(str, obj) {
+
+        return str.replace(/{(\w+)}/g, function(_, k) {
+            return obj[k];
+        });
+
+    },
+
+    urlTemplate: function(template, data) {
+
+        for (var key in data) {
+
+            var value = encodeURIComponent(data[key]);
+
+            template = template.replace("{" + key + "}", value);
+
+        }
+
+        return template;
+
+    },
+
+    /* extend existing properties */
+
+    existend: function() {
+
+        var result = Utils.extend({}, arguments[0]);
+
+        for (var key in result) {
+
+            for (var i = 1; i < arguments.length; i++) {
+
+                if (!arguments[i]) continue;
+
+                var value = arguments[i][key];
+
+                if (value !== undefined) result[key] = value;
+
+            }
+
+        }
+
+        return result;
+
+    },
+
+    cycle: function(current, pool) {
+
+        if (!(pool instanceof Array)) pool = Object.keys(pool);
+
+        let index = pool.indexOf(current);
+
+        index = this.wrap(index + 1, 0, pool.length);
+
+        return pool[index];
+    },
+
+    distance: function(x1, y1, x2, y2) {
+
+        if (arguments.length > 2) {
+
+            var dx = x1 - x2;
+            var dy = y1 - y2;
+
+            return Math.sqrt(dx * dx + dy * dy);
+
+        } else {
+
+            var dx = x1.x - y1.x;
+            var dy = x1.y - y1.y;
+
+            return Math.sqrt(dx * dx + dy * dy);
+
+        }
+
+    },
+
+    distance2: function(x1, y1, x2, y2) {
+
+        if (arguments.length > 2) {
+
+            var dx = x1 - x2;
+            var dy = y1 - y2;
+
+            return dx * dx + dy * dy;
+
+        } else {
+
+            var dx = x1.x - y1.x;
+            var dy = x1.y - y1.y;
+
+            return dx * dx + dy * dy;
+
+        }
+
+    },
+
+    limit: function(value, min, max) {
+
+        return value < min ? min : value > max ? max : value;
+
+    },
+
+    nearest: function(from, entities) {
+
+        var min = -1;
+        var result = null;
+
+        for (var i = 0; i < entities.length; i++) {
+
+            var to = entities[i];
+
+            if (from === to) continue;
+
+            var distance = this.distance2(from, to);
+
+            if (distance < min || min < 0) {
+                min = distance;
+                result = to;
+            }
+
+        }
+
+        return result;
+    },
+
+    nearestxy: function(x, y, entities) {
+
+        var min = -1;
+        var result = null;
+
+        for (var i = 0; i < entities.length; i++) {
+
+            var to = entities[i];
+
+            var distance = this.distance2(x, y, to.x, to.y);
+
+            if (distance < min || min < 0) {
+                min = distance;
+                result = to;
+            }
+
+        }
+
+        return result;
+    },
+
+    sign: function(value) {
+
+        return value == 0 ? 0 : value / Math.abs(value);
+
+    },
+
+    sincos: function(angle, radius) {
+
+        if (arguments.length === 1) {
+            var a = Math.random() * 6.28;
+
+            return {
+                x: Math.cos(a) * angle,
+                y: Math.sin(a) * angle
+            };
+
+        } else {
+
+            return {
+                x: Math.cos(angle) * radius,
+                y: Math.sin(angle) * radius
+            };
+
+        }
+
+    },
+
+    ground: function(num, threshold) {
+
+        return (num / threshold | 0) * threshold;
+
+    },
+
+    thresholdFloor: function(num, threshold) {
+
+        return (num / threshold | 0) * threshold;
+
+    },
+
+    thresholdCeil: function(num, threshold) {
+
+        return Math.ceil(num / threshold) * threshold;
+
+    },
+
+    groundAngle: function(direction, angles) {
+
+        angles = angles || 8;
+
+        var fo = -0.5 * Math.TAU / angles;
+
+        return Utils.ground(direction - fo, Math.TAU / angles);
+
+    },
+
+    rotate: function(pointX, pointY, originX, originY, angle) {
+
+        return [
+            originX + (pointX - originX) * Math.cos(angle) - (pointY - originY) * Math.sin(angle),
+            originY + (pointX - originX) * Math.sin(angle) + (pointY - originY) * Math.cos(angle)
+        ];
+
+    },
+
+    pointInRect: function(x, y, rx, ry, rw, rh) {
+
+        return !(x < rx || y < ry || x >= rx + rw || y >= ry + rh);
+
+    },
+
+    pointInEllipse: function(px, py, ex, ey, ew, eh) {
+
+        let dx = px - ex;
+        let dy = py - ey;
+
+        return (dx * dx) / (ew * ew) + (dy * dy) / (eh * eh) <= 1;
+
+    },
+
+    rectInRect: function(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h) {
+
+        return !(r2x > r1x + r1w ||
+            r2x + r2w < r1x ||
+            r2y > r1y + r1h ||
+            r2y + r2h < r1y);
+
+    },
+
+    pointInRotatedRect: function(pointX, pointY, rectX, rectY, rectWidth, rectHeight, rotation) {
+
+        var x = rectX + (pointX - rectX) * Math.cos(-rotation) - (pointY - rectY) * Math.sin(-rotation);
+        var y = rectY + (pointX - rectX) * Math.sin(-rotation) + (pointY - rectY) * Math.cos(-rotation);
+
+        return this.pointInRect(x, y, rectX - rectWidth / 2, rectY - rectHeight / 2, rectWidth, rectHeight);
+
+    },
+
+    quickPointInRange: function(ax, ay, bx, by, range) {
+
+        if (Math.abs(ax - bx) > range) return false;
+        if (Math.abs(ay - by) > range) return false;
+
+        return true;
+
+    },
+
+
+
+    /* https://github.com/substack/point-in-polygon */
+
+    pointInPolygon: function(x, y, vertices) {
+
+        var inside = false;
+
+        for (var i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+            var xi = vertices[i][0],
+                yi = vertices[i][1];
+            var xj = vertices[j][0],
+                yj = vertices[j][1];
+
+            var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+
+        return inside;
+
+    },
+
+    atan2: function(y, x) {
+
+        if (y === 0 && x === 0) return 0;
+
+        var r;
+
+        var ax = Math.abs(x);
+        var ay = Math.abs(y);
+
+        var a = Math.min(ax, ay) / Math.max(ax, ay);
+        var s = a * a;
+
+        r = ((-0.0464964749 * s + 0.15931422) * s - 0.327622764) * s * a + a
+
+        if (ay > ax) r = 1.57079637 - r;
+        if (x < 0) r = 3.14159274 - r;
+        if (y < 0) r = -r;
+
+        return r;
+
+    },
+
+    lookAt: function(a, b, c, d) {
+
+        if (arguments.length > 2) {
+
+            var angle = this.atan2(d - b, c - a);
+            if (angle < 0) angle = Math.PI * 2 + angle;
+
+        } else {
+
+            var angle = this.atan2(b.y - a.y, b.x - a.x);
+            if (angle < 0) angle = Math.PI * 2 + angle;
+
+        }
+
+        return angle;
+
+    },
+
+    atanxy: function(x, y) {
+
+        var angle = Math.atan2(y, x);
+        if (angle < 0) angle = Math.PI * 2 + angle;
+
+        return angle;
+
+    },
+
+    moveTo: function(value, target, step) {
+
+        if (value < target) {
+            value += step;
+            if (value > target) value = target;
+        }
+
+        if (value > target) {
+            value -= step;
+            if (value < target) value = target;
+        }
+
+        return value;
+
+    },
+
+    circWrap: function(val) {
+
+        while (val >= Math.PI * 2) val -= Math.PI * 2;
+        while (val < 0) val += Math.PI * 2;
+
+        return val;
+
+    },
+
+    wrap: function(value, min, max) {
+
+        if (value < min) {
+
+            return max + (value - min);
+
+        }
+
+        if (value >= max) {
+
+            return min + (value - max);
+
+        }
+
+        return value;
+
+    },
+
+    wrapTo: function(value, target, max, step) {
+
+        if (value === target) return target;
+
+        var result = value;
+
+        var d = this.wrappedDistance(value, target, max);
+
+        if (Math.abs(d) < step) return target;
+
+        result += (d < 0 ? -1 : 1) * step;
+
+        if (result > max) {
+
+            result = result - max;
+
+        } else if (result < 0) {
+
+            result = max + result;
+
+        }
+
+        return result;
+
+    },
+
+    circWrapTo: function(value, target, step) {
+
+        return this.wrapTo(value, target, Math.PI * 2, step);
+
+    },
+
+    circDistance: function(a, b) {
+
+        return this.wrappedDistance(a, b, Math.PI * 2);
+
+    },
+
+    circDistanceAbs: function(a, b) {
+
+        return Math.abs(this.wrappedDistance(a, b, Math.PI * 2));
+
+    },
+
+    circDistanceFactor: function(a, b) {
+
+        return Math.abs(this.wrappedDistance(a, b, Math.PI * 2)) / Math.PI;
+
+    },
+
+    wrappedDistance: function(a, b, max) {
+
+        if (a === b) return 0;
+        else if (a < b) {
+            var l = -a - max + b;
+            var r = b - a;
+        } else {
+            var l = b - a;
+            var r = max - a + b;
+        }
+
+        if (Math.abs(l) > Math.abs(r)) return r;
+        else return l;
+
+    },
+
+    randomPolygon: function(vertices, scale) {
+
+        var angleStep = Math.PI * 2 / vertices;
+
+        var polygon = [];
+
+        var angleOffset = Math.PI * 2 * Math.random();
+
+        for (var i = 0; i < vertices; i++) {
+
+            var angle = angleOffset + i * angleStep - Math.random() * angleStep * 0.5;
+            var r = 0.5 + Math.random() * 0.5;
+            var x = Math.cos(angle) * r;
+            var y = Math.sin(angle) * r;
+
+            polygon.push([x * scale, y * scale]);
+
+        }
+
+        return polygon;
+
+    },
+
+    seed: function(value) {
+
+        var seed = value;
+
+        for (var i = 0; i < (value % 1000); i++) seed = (seed * 9301 + 49297) % 233280;
+
+        return seed / 233280;
+
+    },
+
+    randomf: function(a, b) {
+
+        return a + (b - a) * Math.random();
+
+    },
+
+    random: function(a, b) {
+
+        if (a === undefined) {
+            return Math.random();
+        } else if (b !== undefined) {
+            return Math.floor(a + Math.random() * Math.abs(b - a + 1));
+        } else {
+            if (a instanceof Array) return a[(a.length + 1) * Math.random() - 1 | 0];
+            else {
+                return a[this.random(Object.keys(a))];
+            }
+        }
+
+    },
+
+    randomSign: function() {
+
+        return Math.random() > 0.5 ? -1 : 1;
+
+    },
+
+    signedRandom: function(max) {
+
+        return Math.random() * max * (Math.random() > 0.5 ? -1 : 1);
+
+    },
+
+    lerp(a, b, factor = 0.5) {
+
+        if (typeof a === "number") {
+
+            return a + (b - a) * factor;
+
+        } else if (a instanceof Array) {
+
+            let result = [];
+
+            for (let i = 0; i < a.length; i++) {
+
+                result[i] = this.lerp(a[i], b[i], factor);
+
+            }
+
+            return result;
+
+        } else {
+
+            return {
+                x: this.lerp(a.x, b.x, factor),
+                y: this.lerp(a.y, b.y, factor)
+            };
+
+        }
+
+    },
+
+    lineLineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+
+        var ua, ub, denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+
+        if (denom == 0) {
+
+            return null;
+
+        }
+
+        ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+        ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+
+        if ((ua >= 0 && ua <= 1) && (ub >= 0 && ub <= 1)) {
+
+            return {
+                x: x1 + ua * (x2 - x1),
+                y: y1 + ua * (y2 - y1),
+            };
+
+        } else return null;
+
+    },
+
+    /*
+
+    http://stackoverflow.com/a/24392281    
+    - Dan Fox
+
+    Be carefull: if the determinant is zero, it means that the two lines are parallel. 
+    Either they are equal (and all points are "intersection points") or "strictly" parallel (and no intersection)
+    – oliverpool
+
+    */
+
+    lineLineCollision: function(a, b, c, d, p, q, r, s) {
+
+        var det, gamma, lambda;
+
+        det = (c - a) * (s - q) - (r - p) * (d - b);
+
+        if (det === 0) {
+
+            return false;
+
+        } else {
+
+            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+
+            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+
+            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+
+        }
+
+    },
+
+    interpolatePoints: function(ax, ay, bx, by, f) {
+
+        return [f * ax + (1 - f) * bx, f * ay + (1 - f) * by];
+    },
+
+    /* http://keith-hair.net/blog/2008/08/05/line-to-circle-intersection-data/ */
+
+    lineCircleIntersection: function(ax, ay, bx, by, cx, cy, r) {
+
+        var result = {
+            inside: false,
+            tangent: false,
+            intersects: false,
+            enter: null,
+            exit: null
+        };
+
+        var a = (bx - ax) * (bx - ax) + (by - ay) * (by - ay);
+        var b = 2 * ((bx - ax) * (ax - cx) + (by - ay) * (ay - cy));
+        var cc = cx * cx + cy * cy + ax * ax + ay * ay - 2 * (cx * ax + cy * ay) - r * r;
+        var deter = b * b - 4 * a * cc;
+
+        result.distance = Math.sqrt(a);
+
+        if (deter <= 0) {
+            result.inside = false;
+        } else {
+            var e = Math.sqrt(deter);
+            var u1 = (-b + e) / (2 * a);
+            var u2 = (-b - e) / (2 * a);
+            if ((u1 < 0 || u1 > 1) && (u2 < 0 || u2 > 1)) {
+                if ((u1 < 0 && u2 < 0) || (u1 > 1 && u2 > 1)) {
+                    result.inside = false;
+                } else {
+                    result.inside = true;
+                }
+            } else {
+
+                if (0 <= u2 && u2 <= 1) {
+                    result.enter = this.interpolatePoints(ax, ay, bx, by, 1 - u2);
+                }
+                if (0 <= u1 && u1 <= 1) {
+                    result.exit = this.interpolatePoints(ax, ay, bx, by, 1 - u1);
+                }
+                result.intersects = true;
+                if (result.exit != null && result.enter != null && result.exit[0] == result.enter[0] && result.exit[1] == result.enter[1]) {
+                    result.tangent = true;
+                }
+            }
+        }
+
+        return result.intersects ? result : false;
+
+    },
+
+    lineCircleCollision: function(ax, ay, bx, by, cx, cy, r) {
+
+        var result = false;
+
+        var a = (bx - ax) * (bx - ax) + (by - ay) * (by - ay);
+        var b = 2 * ((bx - ax) * (ax - cx) + (by - ay) * (ay - cy));
+        var cc = cx * cx + cy * cy + ax * ax + ay * ay - 2 * (cx * ax + cy * ay) - r * r;
+        var deter = b * b - 4 * a * cc;
+
+        if (deter <= 0) {
+
+        } else {
+            var e = Math.sqrt(deter);
+            var u1 = (-b + e) / (2 * a);
+            var u2 = (-b - e) / (2 * a);
+
+            if ((u1 < 0 || u1 > 1) && (u2 < 0 || u2 > 1)) {
+
+            } else {
+                result = true;
+            }
+        }
+
+        return result;
+
+    },
+
+    repulse: function(a, b, radius) {
+
+        var angle = this.lookAt(b, a);
+
+        a.x = b.x + Math.cos(angle) * radius;
+        a.y = b.y + Math.sin(angle) * radius;
+
+    },
+
+    interval: function(object, key, interval) {
+
+        if (!object.throttles) object.throttles = {};
+        if (!object.throttles[key]) object.throttles[key] = -interval;
+
+        if (object.lifetime - object.throttles[key] >= interval) {
+
+            object.throttles[key] = object.lifetime;
+
+            return true;
+
+        } else return false;
+
+    },
+
+    intervalRange: function(object, key, min, max) {
+
+        if (!object.throttles) object.throttles = {};
+        if (!object.throttles[key]) object.throttles[key] = object.lifetime - max;
+
+        if (object.throttles[key] - object.lifetime <= 0) {
+
+            object.throttles[key] = object.lifetime + Utils.randomf(min, max);
+
+            return true;
+
+        } else return false;
+
+    },
+
+    onceAfter: function(key, wait, object) {
+
+        if (!object.onceAfters) object.onceAfters = {};
+        if (!object.onceAfters[key]) object.onceAfters[key] = object.lifetime - wait;
+
+        if (object.lifetime - object.onceAfters[key] >= wait) {
+            object.onceAfters[key] = object.lifetime;
+            return true;
+        } else {
+            object.onceAfters[key] = object.lifetime;
+            return false;
+        }
+
+    },
+
+    /* game specific */
+
+    updateBox: function(e, radius) {
+
+        if (!e.box) e.box = [];
+
+        e.box[0] = e.x - radius;
+        e.box[1] = e.y - radius;
+        e.box[2] = radius * 2;
+        e.box[3] = radius * 2;
+    },
+
+    saw: function(t) {
+
+        if (t < 0.5) {
+            return t / 0.5;
+        } else {
+            return 1 - (t - 0.5) / 0.5;
+        }
+
+    },
+
+    vecNormalize: function(v) {
+
+        var d = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+
+        return [v[0] / d, v[1] / d];
+
+    },
+
+    vecDot: function(a, b) {
+
+        return a[0] * b[0] + a[1] * b[1];
+
+    },
+
+    vecSub: function(a, b) {
+
+        return [a[0] - b[0], a[1] - b[1]];
+
+    },
+
+    getDirectionKey: function(direction) {
+
+        if (direction === 0) return "right";
+        else if (direction === Math.PI * 0.5) return "down";
+        else if (direction === Math.PI * 1.0) return "left";
+        else if (direction === Math.PI * 1.5) return "up";
+
+    },
+
+    offsetToDirectionKey: function(ox, oy) {
+
+        if (ox < 0) return "left";
+        if (ox > 0) return "right";
+        if (oy < 0) return "up";
+        if (oy > 0) return "down";
+
+    },
+
+    minValue: function(collection, test) {
+
+        var min = false;
+
+        if (collection instanceof Array) {
+
+            for (var i = 0; i < collection.length; i++) {
+
+                var value = test(collection[i]);
+
+                if (min === false || value < min) min = value;
+
+            }
+
+        } else {
+
+            for (var key in collection) {
+
+                var value = test(collection[key]);
+
+                if (min === false || value < min) min = value;
+
+            }
+
+        }
+
+        return min;
+
+    },
+
+    maxValue: function(collection, test) {
+
+        var max = false;
+
+        if (collection instanceof Array) {
+
+            for (var i = 0; i < collection.length; i++) {
+
+                var value = test(collection[i]);
+
+                if (max === false || value > max) max = value;
+
+            }
+
+        } else {
+
+            for (var key in collection) {
+
+                var value = test(collection[key]);
+
+                if (max === false || value > max) max = value;
+
+            }
+
+        }
+
+        return max;
+
+    },
+
+    smhd: function(s = 0, m = 0, h = 0, d = 0) {
+
+        return s * 1000 + m * 60 * 1000 + h * 60 * 60 * 1000 + d * 24 * 60 * 60 * 1000;
+
+    },
+
+    xget: function(url, object, callback) {
+
+        callback = callback || function() {};
+
+        return new Promise(function(resolve, reject) {
+
+            var request = new XMLHttpRequest();
+
+            request.open("GET", url, true);
+
+            request.onreadystatechange = function() {
+
+                if (request.readyState != 4 || request.status != 200) return;
+
+                callback(false, request.responseText);
+
+                resolve(request.responseText);
+
+            };
+
+            request.onerror = function() {
+                callback(true);
+                reject();
+            };
+
+            request.timeout = 5000;
+
+            request.ontimeout = function() {
+
+                callback(true);
+                reject();
+
+            }
+
+            request.send();
+
+        });
+
+    },
+
+    xpost: function(url, object, callback) {
+
+        callback = callback || function() {};
+
+        return new Promise(function(resolve, reject) {
+
+            var request = new XMLHttpRequest();
+
+            request.open("POST", url, true);
+
+            request.onreadystatechange = function() {
+
+                if (request.readyState != 4 || request.status != 200) return;
+
+                if (callback) callback(false, request.responseText);
+
+                resolve(request.responseText);
+
+            };
+
+            request.onerror = function() {
+
+                if (callback) callback(true);
+
+                reject();
+
+            };
+
+            request.timeout = 2000;
+
+            request.ontimeout = function() {
+
+                if (callback) callback(true);
+
+                reject();
+
+            }
+
+            /*      
+
+                var form_data = new FormData();
+
+                for (var key in object) {
+
+                    form_data.append(key, object[key]);
+
+                }
+
+            */
+
+            request.send(JSON.stringify(object));
+
+        });
+
+    },
+
+    nearestPOT(value, pow) {
+
+        pow = pow || 1;
+
+        while (pow < value) {
+
+            pow *= 2;
+
+        }
+
+        return pow;
+
+    },
+    lzwEncode: function(s) {
+        var dict = {};
+        var data = (s + "").split("");
+        var out = [];
+        var currChar;
+        var phrase = data[0];
+        var code = 256;
+        for (var i = 1; i < data.length; i++) {
+            currChar = data[i];
+            if (dict[phrase + currChar] != null) {
+                phrase += currChar;
+            } else {
+                out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+                dict[phrase + currChar] = code;
+                code++;
+                phrase = currChar;
+            }
+        }
+        out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+        for (var i = 0; i < out.length; i++) {
+            out[i] = String.fromCharCode(out[i]);
+        }
+        return out.join("");
+    },
+
+    // Decompress an LZW-encoded string
+    lzwDecode: function(s) {
+        var dict = {};
+        var data = (s + "").split("");
+        var currChar = data[0];
+        var oldPhrase = currChar;
+        var out = [currChar];
+        var code = 256;
+        var phrase;
+        for (var i = 1; i < data.length; i++) {
+            var currCode = data[i].charCodeAt(0);
+            if (currCode < 256) {
+                phrase = data[i];
+            } else {
+                phrase = dict[currCode] ? dict[currCode] : (oldPhrase + currChar);
+            }
+            out.push(phrase);
+            currChar = phrase.charAt(0);
+            dict[code] = oldPhrase + currChar;
+            code++;
+            oldPhrase = phrase;
+        }
+        return out.join("");
+
+    }
+
+}
   /**
    Options
 
@@ -820,7 +2259,8 @@ Q.GetOS=function(){
     frameTimeLimit: 100,
     autoFocus: true,
     purgeCache:false,
-    RenderingMode:"HD" //HD or Pixel
+    Render:"", //HD or Pixel
+    DebugDrawCallCount:false,
   };
   if(opts) { Q._extend(Q.options,opts); }
 
@@ -1675,7 +3115,10 @@ Q.GetOS=function(){
   */
   Q.setup = function(id, options) {
     if(window.location.hostname=='127.0.0.1'||"localhost"){
-      Q.debug=true
+      if(Q.options.debug!==false){
+        Q.debug=true
+      }
+      
       javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='https://mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
       javascript:(function () { var script = document.createElement('script'); script.src="https://cdn.jsdelivr.net/npm/eruda"; document.body.append(script); script.onload = function () { eruda.init(); } })();
     }
@@ -1697,8 +3140,8 @@ Q.GetOS=function(){
       Q.el.width = options.width || 320;
       Q.el.height = options.height || 420;
       Q.el.id = id;
+      Q.canvasid=id //* Lets make the canvas ID global for ease of access after its created
       document.body.appendChild(Q.el)
-
     }
 
     var w = parseInt(Q.el.width,10),
@@ -1760,15 +3203,16 @@ Q.GetOS=function(){
       Q.wrapper.style.position = "relative";
       elParent.insertBefore(Q.wrapper,Q.el);
       Q.wrapper.appendChild(Q.el);
-
-      if(Q.options.Render=="Pixel"||"pixel"){
-        console.log(Q.Title+"[Canvas] Rendermode Pixel Art")
-        $("canvas").css ( "image-rendering","pixelated" )
+      switch (Q.options.Render) {
+        case"pixel":
+          console.log(Q.Title+"[Render mode] Pixel Art")
+          $("canvas").css ( "image-rendering","pixelated" )
+          break;
+        default:
+          console.log(Q.Title+"[Render mode] High Definition")
+          $("canvas").css( "image-rendering","crisp-edges" )
+          break;
       }
-      if(Q.options.Render=="HD"||"") {
-        console.log(Q.Title+" [Canvas] Rendermode High Definition")
-        $("canvas").css( "image-rendering","crisp-edges" )
-      }  
     }
 
     Q.el.style.position = 'relative';
@@ -1811,19 +3255,27 @@ Q.GetOS=function(){
         Q.el.style.top = topPos+'px';
       }
     }
+    /*
     window.addEventListener(
       "resize",
-      Q.throttle(
+      Q.throttle((
           function (e) {
 
              // Q.onresize({maximize:options.maximize,scaleToFit:options.scaleToFit})
           }, 100
-      ), false
+      ), false)
   );
+  */
     window.addEventListener('orientationchange',function() {
       setTimeout(function() { window.scrollTo(0,1); }, 0);
     });
-
+    window.addEventListener(`pointermove`,function(e){
+      var stage = Q.stage(0), 
+      touch = e.changedTouches ?e.changedTouches[0] : e,
+      point =Q.CanvasToStage(touch.pageX,touch.pageY,stage);
+      Q.Mousex=point.x
+      Q.Mousey=point.y
+    })
     return Q;
   };
 
@@ -1862,11 +3314,10 @@ Q.GetOS=function(){
   */
   Q.imageData = function(img) {
     var canvas = document.createElement("canvas");
-
     canvas.width = img.width;
     canvas.height = img.height;
 
-    var ctx = canvas.getContext("2d");
+    var ctx =canvas.getContext('2d')
     ctx.drawImage(img,0,0);
 
     return ctx.getImageData(0,0,img.width,img.height);
@@ -2849,7 +4300,11 @@ if(typeof exports === 'undefined') {
 } else {
   var Quintus = quintusCore(module,"exports");
 }
-
+//quadtree.js file
+/* https://github.com/timohausmann/quadtree-js.git v1.2.5 */
+!function(){function o(t,e,s,i){this.max_objects=e||10,this.max_levels=s||4,this.level=i||0,this.bounds=t,this.objects=[],this.nodes=[]}o.prototype.split=function(){var t=this.level+1,e=this.bounds.width/2,s=this.bounds.height/2,i=this.bounds.x,h=this.bounds.y;this.nodes[0]=new o({x:i+e,y:h,width:e,height:s},this.max_objects,this.max_levels,t),this.nodes[1]=new o({x:i,y:h,width:e,height:s},this.max_objects,this.max_levels,t),this.nodes[2]=new o({x:i,y:h+s,width:e,height:s},this.max_objects,this.max_levels,t),this.nodes[3]=new o({x:i+e,y:h+s,width:e,height:s},this.max_objects,this.max_levels,t)},o.prototype.getIndex=function(t){var e=[],s=this.bounds.x+this.bounds.width/2,i=this.bounds.y+this.bounds.height/2,h=t.y<i,o=t.x<s,n=t.x+t.width>s,d=t.y+t.height>i;return h&&n&&e.push(0),o&&h&&e.push(1),o&&d&&e.push(2),n&&d&&e.push(3),e},o.prototype.insert=function(t){var e,s=0;if(this.nodes.length)for(e=this.getIndex(t),s=0;s<e.length;s++)this.nodes[e[s]].insert(t);else if(this.objects.push(t),this.objects.length>this.max_objects&&this.level<this.max_levels){for(this.nodes.length||this.split(),s=0;s<this.objects.length;s++){e=this.getIndex(this.objects[s]);for(var i=0;i<e.length;i++)this.nodes[e[i]].insert(this.objects[s])}this.objects=[]}},o.prototype.retrieve=function(t){var e=this.getIndex(t),s=this.objects;if(this.nodes.length)for(var i=0;i<e.length;i++)s=s.concat(this.nodes[e[i]].retrieve(t));return s=s.filter(function(t,e){return s.indexOf(t)>=e})},o.prototype.clear=function(){this.objects=[];for(var t=0;t<this.nodes.length;t++)this.nodes.length&&this.nodes[t].clear();this.nodes=[]},"undefined"!=typeof module&&void 0!==module.exports?module.exports=o:window.Quadtree=o}();
+//event-lite.js file
+function EventLite(){if(!(this instanceof EventLite))return new EventLite}!function(e){"undefined"!=typeof module&&(module.exports=e);var n="listeners",t={on:function(e,n){return f(this,e).push(n),this},once:function(e,n){var t=this;return i.originalListener=n,f(t,e).push(i),t;function i(){r.call(t,e,i),n.apply(this,arguments)}},off:r,emit:function(e,n){var t=this,i=f(t,e,!0);if(!i)return!1;var r=arguments.length;if(1===r)i.forEach((function(e){e.call(t)}));else if(2===r)i.forEach((function(e){e.call(t,n)}));else{var l=Array.prototype.slice.call(arguments,1);i.forEach((function(e){e.apply(t,l)}))}return!!i.length}};function i(e){for(var n in t)e[n]=t[n];return e}function r(e,t){var i,l=this;if(arguments.length){if(t){if(i=f(l,e,!0)){if(!(i=i.filter((function(e){return e!==t&&e.originalListener!==t}))).length)return r.call(l,e);l[n][e]=i}}else if((i=l[n])&&(delete i[e],!Object.keys(i).length))return r.call(l)}else delete l[n];return l}function f(e,t,i){if(!i||e[n]){var r=e[n]||(e[n]={});return r[t]||(r[t]=[])}}i(e.prototype),e.mixin=i}(EventLite);
 //cash.js file
 (function(){"use strict";var C=document,D=window,st=C.documentElement,L=C.createElement.bind(C),ft=L("div"),q=L("table"),Mt=L("tbody"),ot=L("tr"),H=Array.isArray,S=Array.prototype,Dt=S.concat,U=S.filter,at=S.indexOf,ct=S.map,Bt=S.push,ht=S.slice,z=S.some,_t=S.splice,Pt=/^#(?:[\w-]|\\.|[^\x00-\xa0])*$/,Ht=/^\.(?:[\w-]|\\.|[^\x00-\xa0])*$/,$t=/<.+>/,jt=/^\w+$/;function J(t,n){var r=It(n);return!t||!r&&!A(n)&&!c(n)?[]:!r&&Ht.test(t)?n.getElementsByClassName(t.slice(1).replace(/\\/g,"")):!r&&jt.test(t)?n.getElementsByTagName(t):n.querySelectorAll(t)}var dt=function(){function t(n,r){if(n){if(Y(n))return n;var i=n;if(g(n)){var e=r||C;if(i=Pt.test(n)&&A(e)?e.getElementById(n.slice(1).replace(/\\/g,"")):$t.test(n)?yt(n):Y(e)?e.find(n):g(e)?o(e).find(n):J(n,e),!i)return}else if(O(n))return this.ready(n);(i.nodeType||i===D)&&(i=[i]),this.length=i.length;for(var s=0,f=this.length;s<f;s++)this[s]=i[s]}}return t.prototype.init=function(n,r){return new t(n,r)},t}(),u=dt.prototype,o=u.init;o.fn=o.prototype=u,u.length=0,u.splice=_t,typeof Symbol=="function"&&(u[Symbol.iterator]=S[Symbol.iterator]);function Y(t){return t instanceof dt}function B(t){return!!t&&t===t.window}function A(t){return!!t&&t.nodeType===9}function It(t){return!!t&&t.nodeType===11}function c(t){return!!t&&t.nodeType===1}function Ft(t){return!!t&&t.nodeType===3}function Wt(t){return typeof t=="boolean"}function O(t){return typeof t=="function"}function g(t){return typeof t=="string"}function v(t){return t===void 0}function P(t){return t===null}function lt(t){return!isNaN(parseFloat(t))&&isFinite(t)}function G(t){if(typeof t!="object"||t===null)return!1;var n=Object.getPrototypeOf(t);return n===null||n===Object.prototype}o.isWindow=B,o.isFunction=O,o.isArray=H,o.isNumeric=lt,o.isPlainObject=G;function d(t,n,r){if(r){for(var i=t.length;i--;)if(n.call(t[i],i,t[i])===!1)return t}else if(G(t))for(var e=Object.keys(t),i=0,s=e.length;i<s;i++){var f=e[i];if(n.call(t[f],f,t[f])===!1)return t}else for(var i=0,s=t.length;i<s;i++)if(n.call(t[i],i,t[i])===!1)return t;return t}o.each=d,u.each=function(t){return d(this,t)},u.empty=function(){return this.each(function(t,n){for(;n.firstChild;)n.removeChild(n.firstChild)})};function $(){for(var t=[],n=0;n<arguments.length;n++)t[n]=arguments[n];var r=Wt(t[0])?t.shift():!1,i=t.shift(),e=t.length;if(!i)return{};if(!e)return $(r,o,i);for(var s=0;s<e;s++){var f=t[s];for(var a in f)r&&(H(f[a])||G(f[a]))?((!i[a]||i[a].constructor!==f[a].constructor)&&(i[a]=new f[a].constructor),$(r,i[a],f[a])):i[a]=f[a]}return i}o.extend=$,u.extend=function(t){return $(u,t)};var qt=/\S+/g;function j(t){return g(t)?t.match(qt)||[]:[]}u.toggleClass=function(t,n){var r=j(t),i=!v(n);return this.each(function(e,s){c(s)&&d(r,function(f,a){i?n?s.classList.add(a):s.classList.remove(a):s.classList.toggle(a)})})},u.addClass=function(t){return this.toggleClass(t,!0)},u.removeAttr=function(t){var n=j(t);return this.each(function(r,i){c(i)&&d(n,function(e,s){i.removeAttribute(s)})})};function Ut(t,n){if(t){if(g(t)){if(arguments.length<2){if(!this[0]||!c(this[0]))return;var r=this[0].getAttribute(t);return P(r)?void 0:r}return v(n)?this:P(n)?this.removeAttr(t):this.each(function(e,s){c(s)&&s.setAttribute(t,n)})}for(var i in t)this.attr(i,t[i]);return this}}u.attr=Ut,u.removeClass=function(t){return arguments.length?this.toggleClass(t,!1):this.attr("class","")},u.hasClass=function(t){return!!t&&z.call(this,function(n){return c(n)&&n.classList.contains(t)})},u.get=function(t){return v(t)?ht.call(this):(t=Number(t),this[t<0?t+this.length:t])},u.eq=function(t){return o(this.get(t))},u.first=function(){return this.eq(0)},u.last=function(){return this.eq(-1)};function zt(t){return v(t)?this.get().map(function(n){return c(n)||Ft(n)?n.textContent:""}).join(""):this.each(function(n,r){c(r)&&(r.textContent=t)})}u.text=zt;function T(t,n,r){if(c(t)){var i=D.getComputedStyle(t,null);return r?i.getPropertyValue(n)||void 0:i[n]||t.style[n]}}function E(t,n){return parseInt(T(t,n),10)||0}function gt(t,n){return E(t,"border".concat(n?"Left":"Top","Width"))+E(t,"padding".concat(n?"Left":"Top"))+E(t,"padding".concat(n?"Right":"Bottom"))+E(t,"border".concat(n?"Right":"Bottom","Width"))}var X={};function Jt(t){if(X[t])return X[t];var n=L(t);C.body.insertBefore(n,null);var r=T(n,"display");return C.body.removeChild(n),X[t]=r!=="none"?r:"block"}function vt(t){return T(t,"display")==="none"}function pt(t,n){var r=t&&(t.matches||t.webkitMatchesSelector||t.msMatchesSelector);return!!r&&!!n&&r.call(t,n)}function I(t){return g(t)?function(n,r){return pt(r,t)}:O(t)?t:Y(t)?function(n,r){return t.is(r)}:t?function(n,r){return r===t}:function(){return!1}}u.filter=function(t){var n=I(t);return o(U.call(this,function(r,i){return n.call(r,i,r)}))};function x(t,n){return n?t.filter(n):t}u.detach=function(t){return x(this,t).each(function(n,r){r.parentNode&&r.parentNode.removeChild(r)}),this};var Yt=/^\s*<(\w+)[^>]*>/,Gt=/^<(\w+)\s*\/?>(?:<\/\1>)?$/,mt={"*":ft,tr:Mt,td:ot,th:ot,thead:q,tbody:q,tfoot:q};function yt(t){if(!g(t))return[];if(Gt.test(t))return[L(RegExp.$1)];var n=Yt.test(t)&&RegExp.$1,r=mt[n]||mt["*"];return r.innerHTML=t,o(r.childNodes).detach().get()}o.parseHTML=yt,u.has=function(t){var n=g(t)?function(r,i){return J(t,i).length}:function(r,i){return i.contains(t)};return this.filter(n)},u.not=function(t){var n=I(t);return this.filter(function(r,i){return(!g(t)||c(i))&&!n.call(i,r,i)})};function R(t,n,r,i){for(var e=[],s=O(n),f=i&&I(i),a=0,y=t.length;a<y;a++)if(s){var h=n(t[a]);h.length&&Bt.apply(e,h)}else for(var p=t[a][n];p!=null&&!(i&&f(-1,p));)e.push(p),p=r?p[n]:null;return e}function bt(t){return t.multiple&&t.options?R(U.call(t.options,function(n){return n.selected&&!n.disabled&&!n.parentNode.disabled}),"value"):t.value||""}function Xt(t){return arguments.length?this.each(function(n,r){var i=r.multiple&&r.options;if(i||Ot.test(r.type)){var e=H(t)?ct.call(t,String):P(t)?[]:[String(t)];i?d(r.options,function(s,f){f.selected=e.indexOf(f.value)>=0},!0):r.checked=e.indexOf(r.value)>=0}else r.value=v(t)||P(t)?"":t}):this[0]&&bt(this[0])}u.val=Xt,u.is=function(t){var n=I(t);return z.call(this,function(r,i){return n.call(r,i,r)})},o.guid=1;function w(t){return t.length>1?U.call(t,function(n,r,i){return at.call(i,n)===r}):t}o.unique=w,u.add=function(t,n){return o(w(this.get().concat(o(t,n).get())))},u.children=function(t){return x(o(w(R(this,function(n){return n.children}))),t)},u.parent=function(t){return x(o(w(R(this,"parentNode"))),t)},u.index=function(t){var n=t?o(t)[0]:this[0],r=t?this:o(n).parent().children();return at.call(r,n)},u.closest=function(t){var n=this.filter(t);if(n.length)return n;var r=this.parent();return r.length?r.closest(t):n},u.siblings=function(t){return x(o(w(R(this,function(n){return o(n).parent().children().not(n)}))),t)},u.find=function(t){return o(w(R(this,function(n){return J(t,n)})))};var Kt=/^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g,Qt=/^$|^module$|\/(java|ecma)script/i,Vt=["type","src","nonce","noModule"];function Zt(t,n){var r=o(t);r.filter("script").add(r.find("script")).each(function(i,e){if(Qt.test(e.type)&&st.contains(e)){var s=L("script");s.text=e.textContent.replace(Kt,""),d(Vt,function(f,a){e[a]&&(s[a]=e[a])}),n.head.insertBefore(s,null),n.head.removeChild(s)}})}function kt(t,n,r,i,e){i?t.insertBefore(n,r?t.firstChild:null):t.nodeName==="HTML"?t.parentNode.replaceChild(n,t):t.parentNode.insertBefore(n,r?t:t.nextSibling),e&&Zt(n,t.ownerDocument)}function N(t,n,r,i,e,s,f,a){return d(t,function(y,h){d(o(h),function(p,M){d(o(n),function(b,W){var rt=r?M:W,it=r?W:M,m=r?p:b;kt(rt,m?it.cloneNode(!0):it,i,e,!m)},a)},f)},s),n}u.after=function(){return N(arguments,this,!1,!1,!1,!0,!0)},u.append=function(){return N(arguments,this,!1,!1,!0)};function tn(t){if(!arguments.length)return this[0]&&this[0].innerHTML;if(v(t))return this;var n=/<script[\s>]/.test(t);return this.each(function(r,i){c(i)&&(n?o(i).empty().append(t):i.innerHTML=t)})}u.html=tn,u.appendTo=function(t){return N(arguments,this,!0,!1,!0)},u.wrapInner=function(t){return this.each(function(n,r){var i=o(r),e=i.contents();e.length?e.wrapAll(t):i.append(t)})},u.before=function(){return N(arguments,this,!1,!0)},u.wrapAll=function(t){for(var n=o(t),r=n[0];r.children.length;)r=r.firstElementChild;return this.first().before(n),this.appendTo(r)},u.wrap=function(t){return this.each(function(n,r){var i=o(t)[0];o(r).wrapAll(n?i.cloneNode(!0):i)})},u.insertAfter=function(t){return N(arguments,this,!0,!1,!1,!1,!1,!0)},u.insertBefore=function(t){return N(arguments,this,!0,!0)},u.prepend=function(){return N(arguments,this,!1,!0,!0,!0,!0)},u.prependTo=function(t){return N(arguments,this,!0,!0,!0,!1,!1,!0)},u.contents=function(){return o(w(R(this,function(t){return t.tagName==="IFRAME"?[t.contentDocument]:t.tagName==="TEMPLATE"?t.content.childNodes:t.childNodes})))},u.next=function(t,n,r){return x(o(w(R(this,"nextElementSibling",n,r))),t)},u.nextAll=function(t){return this.next(t,!0)},u.nextUntil=function(t,n){return this.next(n,!0,t)},u.parents=function(t,n){return x(o(w(R(this,"parentElement",!0,n))),t)},u.parentsUntil=function(t,n){return this.parents(n,t)},u.prev=function(t,n,r){return x(o(w(R(this,"previousElementSibling",n,r))),t)},u.prevAll=function(t){return this.prev(t,!0)},u.prevUntil=function(t,n){return this.prev(n,!0,t)},u.map=function(t){return o(Dt.apply([],ct.call(this,function(n,r){return t.call(n,r,n)})))},u.clone=function(){return this.map(function(t,n){return n.cloneNode(!0)})},u.offsetParent=function(){return this.map(function(t,n){for(var r=n.offsetParent;r&&T(r,"position")==="static";)r=r.offsetParent;return r||st})},u.slice=function(t,n){return o(ht.call(this,t,n))};var nn=/-([a-z])/g;function K(t){return t.replace(nn,function(n,r){return r.toUpperCase()})}u.ready=function(t){var n=function(){return setTimeout(t,0,o)};return C.readyState!=="loading"?n():C.addEventListener("DOMContentLoaded",n),this},u.unwrap=function(){return this.parent().each(function(t,n){if(n.tagName!=="BODY"){var r=o(n);r.replaceWith(r.children())}}),this},u.offset=function(){var t=this[0];if(t){var n=t.getBoundingClientRect();return{top:n.top+D.pageYOffset,left:n.left+D.pageXOffset}}},u.position=function(){var t=this[0];if(t){var n=T(t,"position")==="fixed",r=n?t.getBoundingClientRect():this.offset();if(!n){for(var i=t.ownerDocument,e=t.offsetParent||i.documentElement;(e===i.body||e===i.documentElement)&&T(e,"position")==="static";)e=e.parentNode;if(e!==t&&c(e)){var s=o(e).offset();r.top-=s.top+E(e,"borderTopWidth"),r.left-=s.left+E(e,"borderLeftWidth")}}return{top:r.top-E(t,"marginTop"),left:r.left-E(t,"marginLeft")}}};var Et={class:"className",contenteditable:"contentEditable",for:"htmlFor",readonly:"readOnly",maxlength:"maxLength",tabindex:"tabIndex",colspan:"colSpan",rowspan:"rowSpan",usemap:"useMap"};u.prop=function(t,n){if(t){if(g(t))return t=Et[t]||t,arguments.length<2?this[0]&&this[0][t]:this.each(function(i,e){e[t]=n});for(var r in t)this.prop(r,t[r]);return this}},u.removeProp=function(t){return this.each(function(n,r){delete r[Et[t]||t]})};var rn=/^--/;function Q(t){return rn.test(t)}var V={},en=ft.style,un=["webkit","moz","ms"];function sn(t,n){if(n===void 0&&(n=Q(t)),n)return t;if(!V[t]){var r=K(t),i="".concat(r[0].toUpperCase()).concat(r.slice(1)),e="".concat(r," ").concat(un.join("".concat(i," "))).concat(i).split(" ");d(e,function(s,f){if(f in en)return V[t]=f,!1})}return V[t]}var fn={animationIterationCount:!0,columnCount:!0,flexGrow:!0,flexShrink:!0,fontWeight:!0,gridArea:!0,gridColumn:!0,gridColumnEnd:!0,gridColumnStart:!0,gridRow:!0,gridRowEnd:!0,gridRowStart:!0,lineHeight:!0,opacity:!0,order:!0,orphans:!0,widows:!0,zIndex:!0};function wt(t,n,r){return r===void 0&&(r=Q(t)),!r&&!fn[t]&&lt(n)?"".concat(n,"px"):n}function on(t,n){if(g(t)){var r=Q(t);return t=sn(t,r),arguments.length<2?this[0]&&T(this[0],t,r):t?(n=wt(t,n,r),this.each(function(e,s){c(s)&&(r?s.style.setProperty(t,n):s.style[t]=n)})):this}for(var i in t)this.css(i,t[i]);return this}u.css=on;function Ct(t,n){try{return t(n)}catch{return n}}var an=/^\s+|\s+$/;function St(t,n){var r=t.dataset[n]||t.dataset[K(n)];return an.test(r)?r:Ct(JSON.parse,r)}function cn(t,n,r){r=Ct(JSON.stringify,r),t.dataset[K(n)]=r}function hn(t,n){if(!t){if(!this[0])return;var r={};for(var i in this[0].dataset)r[i]=St(this[0],i);return r}if(g(t))return arguments.length<2?this[0]&&St(this[0],t):v(n)?this:this.each(function(e,s){cn(s,t,n)});for(var i in t)this.data(i,t[i]);return this}u.data=hn;function Tt(t,n){var r=t.documentElement;return Math.max(t.body["scroll".concat(n)],r["scroll".concat(n)],t.body["offset".concat(n)],r["offset".concat(n)],r["client".concat(n)])}d([!0,!1],function(t,n){d(["Width","Height"],function(r,i){var e="".concat(n?"outer":"inner").concat(i);u[e]=function(s){if(this[0])return B(this[0])?n?this[0]["inner".concat(i)]:this[0].document.documentElement["client".concat(i)]:A(this[0])?Tt(this[0],i):this[0]["".concat(n?"offset":"client").concat(i)]+(s&&n?E(this[0],"margin".concat(r?"Top":"Left"))+E(this[0],"margin".concat(r?"Bottom":"Right")):0)}})}),d(["Width","Height"],function(t,n){var r=n.toLowerCase();u[r]=function(i){if(!this[0])return v(i)?void 0:this;if(!arguments.length)return B(this[0])?this[0].document.documentElement["client".concat(n)]:A(this[0])?Tt(this[0],n):this[0].getBoundingClientRect()[r]-gt(this[0],!t);var e=parseInt(i,10);return this.each(function(s,f){if(c(f)){var a=T(f,"boxSizing");f.style[r]=wt(r,e+(a==="border-box"?gt(f,!t):0))}})}});var Rt="___cd";u.toggle=function(t){return this.each(function(n,r){if(c(r)){var i=vt(r),e=v(t)?i:t;e?(r.style.display=r[Rt]||"",vt(r)&&(r.style.display=Jt(r.tagName))):i||(r[Rt]=T(r,"display"),r.style.display="none")}})},u.hide=function(){return this.toggle(!1)},u.show=function(){return this.toggle(!0)};var xt="___ce",Z=".",k={focus:"focusin",blur:"focusout"},Nt={mouseenter:"mouseover",mouseleave:"mouseout"},dn=/^(mouse|pointer|contextmenu|drag|drop|click|dblclick)/i;function tt(t){return Nt[t]||k[t]||t}function nt(t){var n=t.split(Z);return[n[0],n.slice(1).sort()]}u.trigger=function(t,n){if(g(t)){var r=nt(t),i=r[0],e=r[1],s=tt(i);if(!s)return this;var f=dn.test(s)?"MouseEvents":"HTMLEvents";t=C.createEvent(f),t.initEvent(s,!0,!0),t.namespace=e.join(Z),t.___ot=i}t.___td=n;var a=t.___ot in k;return this.each(function(y,h){a&&O(h[t.___ot])&&(h["___i".concat(t.type)]=!0,h[t.___ot](),h["___i".concat(t.type)]=!1),h.dispatchEvent(t)})};function Lt(t){return t[xt]=t[xt]||{}}function ln(t,n,r,i,e){var s=Lt(t);s[n]=s[n]||[],s[n].push([r,i,e]),t.addEventListener(n,e)}function At(t,n){return!n||!z.call(n,function(r){return t.indexOf(r)<0})}function F(t,n,r,i,e){var s=Lt(t);if(n)s[n]&&(s[n]=s[n].filter(function(f){var a=f[0],y=f[1],h=f[2];if(e&&h.guid!==e.guid||!At(a,r)||i&&i!==y)return!0;t.removeEventListener(n,h)}));else for(n in s)F(t,n,r,i,e)}u.off=function(t,n,r){var i=this;if(v(t))this.each(function(s,f){!c(f)&&!A(f)&&!B(f)||F(f)});else if(g(t))O(n)&&(r=n,n=""),d(j(t),function(s,f){var a=nt(f),y=a[0],h=a[1],p=tt(y);i.each(function(M,b){!c(b)&&!A(b)&&!B(b)||F(b,p,h,n,r)})});else for(var e in t)this.off(e,t[e]);return this},u.remove=function(t){return x(this,t).detach().off(),this},u.replaceWith=function(t){return this.before(t).remove()},u.replaceAll=function(t){return o(t).replaceWith(this),this};function gn(t,n,r,i,e){var s=this;if(!g(t)){for(var f in t)this.on(f,n,r,t[f],e);return this}return g(n)||(v(n)||P(n)?n="":v(r)?(r=n,n=""):(i=r,r=n,n="")),O(i)||(i=r,r=void 0),i?(d(j(t),function(a,y){var h=nt(y),p=h[0],M=h[1],b=tt(p),W=p in Nt,rt=p in k;b&&s.each(function(it,m){if(!(!c(m)&&!A(m)&&!B(m))){var et=function(l){if(l.target["___i".concat(l.type)])return l.stopImmediatePropagation();if(!(l.namespace&&!At(M,l.namespace.split(Z)))&&!(!n&&(rt&&(l.target!==m||l.___ot===b)||W&&l.relatedTarget&&m.contains(l.relatedTarget)))){var ut=m;if(n){for(var _=l.target;!pt(_,n);)if(_===m||(_=_.parentNode,!_))return;ut=_}Object.defineProperty(l,"currentTarget",{configurable:!0,get:function(){return ut}}),Object.defineProperty(l,"delegateTarget",{configurable:!0,get:function(){return m}}),Object.defineProperty(l,"data",{configurable:!0,get:function(){return r}});var bn=i.call(ut,l,l.___td);e&&F(m,b,M,n,et),bn===!1&&(l.preventDefault(),l.stopPropagation())}};et.guid=i.guid=i.guid||o.guid++,ln(m,b,M,n,et)}})}),this):this}u.on=gn;function vn(t,n,r,i){return this.on(t,n,r,i,!0)}u.one=vn;var pn=/\r?\n/g;function mn(t,n){return"&".concat(encodeURIComponent(t),"=").concat(encodeURIComponent(n.replace(pn,`\r
 `)))}var yn=/file|reset|submit|button|image/i,Ot=/radio|checkbox/i;u.serialize=function(){var t="";return this.each(function(n,r){d(r.elements||[r],function(i,e){if(!(e.disabled||!e.name||e.tagName==="FIELDSET"||yn.test(e.type)||Ot.test(e.type)&&!e.checked)){var s=bt(e);if(!v(s)){var f=H(s)?s:[s];d(f,function(a,y){t+=mn(e.name,y)})}}})}),t.slice(1)},typeof exports<"u"?module.exports=o:D.cash=D.$=o})();
@@ -3226,8 +4681,9 @@ Quintus["2D"] = function(Q) {
            return;
       }
 
-      var canvas = document.createElement('canvas'),
-          ctx = canvas.getContext('2d');
+      var canvas = document.createElement('canvas')
+      //
+      var ctx =canvas.getContext('2d')
 
       canvas.width = p.blockW;
       canvas.height= p.blockH;
@@ -3634,7 +5090,333 @@ Quintus.Anim = function(Q) {
   // https://github.com/sole/tween.js/blob/master/src/Tween.js
   Q.Easing = {
     Linear: function (k) { return k; },
+    inQuad: function(t) {
+      return t * t
+    },
+    outQuad: function(t) {
+      return t * (2 - t)
+    },
+    inOutQuad: function(t) {
+      return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+    },
+    inCubic: function(t) {
+      return t * t * t
+    },
+    outCubic: function(t) {
+      return (--t) * t * t + 1
+    },
+    inOutCubic: function(t) {
+      return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+    },
+    inQuart: function(t) {
+      return t * t * t * t
+    },
+    outQuart: function(t) {
+      return 1 - (--t) * t * t * t
+    },
+    inOutQuart: function(t) {
+      return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t
+    },
+    inQuint: function(t) {
+      return t * t * t * t * t
+    },
+    outQuint: function(t) {
+      return 1 + (--t) * t * t * t * t
+    },
+    inOutQuint: function(t) {
+      return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t
+    },
+    inSine: function(t) {
+      return -1 * Math.cos(t / 1 * (Math.PI * 0.5)) + 1;
+    },
+    outSine: function(t) {
+      return Math.sin(t / 1 * (Math.PI * 0.5));
+    },
+    inOutSine: function(t) {
+      return -1 / 2 * (Math.cos(Math.PI * t) - 1);
+    },
+    inExpo: function(t) {
+      return (t == 0) ? 0 : Math.pow(2, 10 * (t - 1));
+    },
+    outExpo: function(t) {
+      return (t == 1) ? 1 : (-Math.pow(2, -10 * t) + 1);
+    },
+    inOutExpo: function(t) {
+      if (t == 0) return 0;
+      if (t == 1) return 1;
+      if ((t /= 1 / 2) < 1) return 1 / 2 * Math.pow(2, 10 * (t - 1));
+      return 1 / 2 * (-Math.pow(2, -10 * --t) + 2);
+    },
+    inCirc: function(t) {
+      return -1 * (Math.sqrt(1 - t * t) - 1);
+    },
+    outCirc: function(t) {
+      return Math.sqrt(1 - (t = t - 1) * t);
+    },
+    inOutCirc: function(t) {
+      if ((t /= 1 / 2) < 1) return -1 / 2 * (Math.sqrt(1 - t * t) - 1);
+      return 1 / 2 * (Math.sqrt(1 - (t -= 2) * t) + 1);
+    },
+    inElastic: function(t) {
+      var s = 1.70158;
+      var p = 0;
+      var a = 1;
+      if (t == 0) return 0;
+      if (t == 1) return 1;
+      if (!p) p = 0.3;
+      if (a < 1) {
+        a = 1;
+        var s = p / 4;
+      } else var s = p / (2 * Math.PI) * Math.asin(1 / a);
+      return -(a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t - s) * (2 * Math.PI) / p));
+    },
+    outElastic: function(t) {
+      var s = 1.70158;
+      var p = 0;
+      var a = 1;
+      if (t == 0) return 0;
+      if (t == 1) return 1;
+      if (!p) p = 0.3;
+      if (a < 1) {
+        a = 1;
+        var s = p / 4;
+      } else var s = p / (2 * Math.PI) * Math.asin(1 / a);
+      return a * Math.pow(2, -10 * t) * Math.sin((t - s) * (2 * Math.PI) / p) + 1;
+    },
+    inOutElastic: function(t) {
+      var s = 1.70158;
+      var p = 0;
+      var a = 1;
+      if (t == 0) return 0;
+      if ((t /= 1 / 2) == 2) return 1;
+      if (!p) p = (0.3 * 1.5);
+      if (a < 1) {
+        a = 1;
+        var s = p / 4;
+      } else var s = p / (2 * Math.PI) * Math.asin(1 / a);
+      if (t < 1) return -.5 * (a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t - s) * (2 * Math.PI) / p));
+      return a * Math.pow(2, -10 * (t -= 1)) * Math.sin((t - s) * (2 * Math.PI) / p) * 0.5 + 1;
+    },
+    inBack: function(t, s) {
+      if (s == undefined) s = 1.70158;
+      return 1 * t * t * ((s + 1) * t - s);
+    },
+    outBack: function(t, s) {
+      if (s == undefined) s = 1.70158;
+      return 1 * ((t = t / 1 - 1) * t * ((s + 1) * t + s) + 1);
+    },
+    inOutBack: function(t, s) {
+      if (s == undefined) s = 1.70158;
+      if ((t /= 1 / 2) < 1) return 1 / 2 * (t * t * (((s *= (1.525)) + 1) * t - s));
+      return 1 / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2);
+    },
+    inBounce: function(t) {
+      return 1 - Q.Easing .outBounce(1 - t);
+    },
+    outBounce: function(t) {
+      if ((t /= 1) < (1 / 2.75)) {
+        return (7.5625 * t * t);
+      } else if (t < (2 / 2.75)) {
+        return (7.5625 * (t -= (1.5 / 2.75)) * t + .75);
+      } else if (t < (2.5 / 2.75)) {
+        return (7.5625 * (t -= (2.25 / 2.75)) * t + .9375);
+      } else {
+        return (7.5625 * (t -= (2.625 / 2.75)) * t + .984375);
+      }
+    },
+    inOutBounce: function(t) {
+      if (t < 1 / 2) return Q.Easing .inBounce(t * 2) * 0.5;
+      return Q.Easing .outBounce(t * 2 - 1) * 0.5 + 0.5;
+    },
+  translateEasing: function(key) {
 
+    if (!this.cache[key]) {
+      var array = key.split('');
+
+      var sign = 1;
+      var signed = false;
+      var trimming = false;
+
+      for (var i = 0; i < array.length; i++) {
+
+        var char = array[i];
+
+        if (char === "-") {
+          sign = -1;
+          signed = true;
+          array.splice(i--, 1);
+        } else if (char === "+") {
+          sign = 1;
+          array.splice(i--, 1);
+        } else if (char === "t") {
+          trimming = !trimming;
+          array.splice(i--, 1);
+        } else array[i] = parseInt(array[i], 16) * sign;
+
+      }
+
+      var min = Math.min.apply(null, array);
+      var max = Math.max.apply(null, array);
+      var diff = max - min;
+      var cache = [];
+      var normalized = [];
+
+      for (var i = 0; i < array.length; i++) {
+
+        if (signed) {
+
+          var diff = Math.max(Math.abs(min), Math.abs(max))
+          var value = array[i] / diff;
+
+        } else {
+
+          var diff = max - min;
+          var value = (array[i] - min) / diff;
+
+        }
+
+        if (trimming) {
+
+          if (value < 0) value = 0;
+          if (value > 1.0) value = 1.0;
+
+        }
+
+        normalized.push(value);
+
+      }
+
+      this.cache[key] = normalized;
+
+    }
+
+    return this.cache[key]
+
+  },
+
+  splineK: {},
+  splineX: {},
+  splineY: {},
+
+  insertIntermediateValues: function(a) {
+    var result = [];
+    for (var i = 0; i < a.length; i++) {
+      result.push(a[i]);
+
+      if (i < a.length - 1) result.push(a[i + 1] + (a[i] - a[i + 1]) * 0.6);
+    }
+
+    return result;
+  },
+
+  spline: function(x, key) {
+
+    if (!this.splineK[key]) {
+
+      var xs = [];
+      var ys = this.translateEasing(key);
+      if (!ys.length) return 0;
+
+      for (var i = 0; i < ys.length; i++) xs.push(i * (1 / (ys.length - 1)));
+
+      var ks = xs.map(function() {
+        return 0
+      });
+
+      ks = this.getNaturalKs(xs, ys, ks);
+
+      this.splineX[key] = xs;
+      this.splineY[key] = ys;
+      this.splineK[key] = ks;
+
+    }
+
+    if (x > 1) return this.splineY[key][this.splineY[key].length - 1];
+
+    var ks = this.splineK[key];
+    var xs = this.splineX[key];
+    var ys = this.splineY[key];
+
+    var i = 1;
+
+    while (xs[i] < x) i++;
+
+    var t = (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
+    var a = ks[i - 1] * (xs[i] - xs[i - 1]) - (ys[i] - ys[i - 1]);
+    var b = -ks[i] * (xs[i] - xs[i - 1]) + (ys[i] - ys[i - 1]);
+    var q = (1 - t) * ys[i - 1] + t * ys[i] + t * (1 - t) * (a * (1 - t) + b * t);
+    return q;
+  },
+
+  getNaturalKs: function(xs, ys, ks) {
+    var n = xs.length - 1;
+    var A = Q.Easing .zerosMat(n + 1, n + 2);
+
+    for (var i = 1; i < n; i++) // rows
+    {
+      A[i][i - 1] = 1 / (xs[i] - xs[i - 1]);
+      A[i][i] = 2 * (1 / (xs[i] - xs[i - 1]) + 1 / (xs[i + 1] - xs[i]));
+      A[i][i + 1] = 1 / (xs[i + 1] - xs[i]);
+      A[i][n + 1] = 3 * ((ys[i] - ys[i - 1]) / ((xs[i] - xs[i - 1]) * (xs[i] - xs[i - 1])) + (ys[i + 1] - ys[i]) / ((xs[i + 1] - xs[i]) * (xs[i + 1] - xs[i])));
+    }
+
+    A[0][0] = 2 / (xs[1] - xs[0]);
+    A[0][1] = 1 / (xs[1] - xs[0]);
+    A[0][n + 1] = 3 * (ys[1] - ys[0]) / ((xs[1] - xs[0]) * (xs[1] - xs[0]));
+
+    A[n][n - 1] = 1 / (xs[n] - xs[n - 1]);
+    A[n][n] = 2 / (xs[n] - xs[n - 1]);
+    A[n][n + 1] = 3 * (ys[n] - ys[n - 1]) / ((xs[n] - xs[n - 1]) * (xs[n] - xs[n - 1]));
+
+    return Q.Easing.solve(A, ks);
+  },
+
+  solve: function(A, ks) {
+    var m = A.length;
+    for (var k = 0; k < m; k++)
+    {
+      var i_max = 0;
+      var vali = Number.NEGATIVE_INFINITY;
+      for (var i = k; i < m; i++)
+        if (A[i][k] > vali) {
+          i_max = i;
+          vali = A[i][k];
+        }
+        Q.Easing.splineSwapRows(A, k, i_max);
+
+      // for all rows below pivot
+      for (var i = k + 1; i < m; i++) {
+        for (var j = k + 1; j < m + 1; j++)
+          A[i][j] = A[i][j] - A[k][j] * (A[i][k] / A[k][k]);
+        A[i][k] = 0;
+      }
+    }
+    for (var i = m - 1; i >= 0; i--) // rows = columns
+    {
+      var v = A[i][m] / A[i][i];
+      ks[i] = v;
+      for (var j = i - 1; j >= 0; j--) // rows
+      {
+        A[j][m] -= A[j][i] * v;
+        A[j][i] = 0;
+      }
+    }
+    return ks;
+  },
+
+  zerosMat: function(r, c) {
+    var A = [];
+    for (var i = 0; i < r; i++) {
+      A.push([]);
+      for (var j = 0; j < c; j++) A[i].push(0);
+    }
+    return A;
+  },
+    splineSwapRows: function(m, k, l) {
+      var p = m[k];
+      m[k] = m[l];
+      m[l] = p;
+    },
     Quadratic: {
       In: function ( k )  { return k * k; },
       Out: function ( k ) {return k * ( 2 - k ); },
@@ -3948,11 +5730,12 @@ Quintus.Input = function(Q) {
     S: 'S'
   };
 
-  var DEFAULT_TOUCH_CONTROLS  = [ ['left','<' ],
-                            ['right','>' ],
-                            [],
-                            ['action','b'],
-                            ['fire', 'a' ]];
+  var DEFAULT_TOUCH_CONTROLS  = [
+    ['left','<' ],
+    ['right','>' ],
+    [],
+    ['action','b'],
+    ['fire', 'a' ]];
 
   // Clockwise from midnight (a la CSS)
   var DEFAULT_JOYPAD_INPUTS =  [ 'up','right','down','left'];
@@ -4009,7 +5792,9 @@ Quintus.Input = function(Q) {
       return y;
   };
 
-
+  Q.CanvasToStage=function(x,y,stage) {
+    return {x:Q.canvasToStageY(x,stage),y:Q.canvasToStageY(y,stage)}
+  }
 
   /**
    *
@@ -4053,11 +5838,15 @@ Quintus.Input = function(Q) {
       Q.el.style.outline = 0;
 
       Q.el.addEventListener("keydown",function(e) {
+        
         if(Q.input.keys[e.keyCode]) {
           var actionName = Q.input.keys[e.keyCode];
           Q.inputs[actionName] = true;
           Q.input.trigger(actionName);
           Q.input.trigger('keydown',e.keyCode);
+        }else{
+          Q.inputs[e.key]=true
+          Q.input.trigger('keydown',e.key);
         }
         if(!e.ctrlKey && !e.metaKey) {
           e.preventDefault();
@@ -4070,6 +5859,9 @@ Quintus.Input = function(Q) {
           Q.inputs[actionName] = false;
           Q.input.trigger(actionName + "Up");
           Q.input.trigger('keyup',e.keyCode);
+        }else{
+          Q.inputs[e.key]=false
+          Q.input.trigger('keydown',e.key);
         }
         e.preventDefault();
       },false);
@@ -4790,7 +6582,7 @@ Quintus.Input = function(Q) {
 
       if(!p.stepDistance) { p.stepDistance = 32; }
       if(!p.stepDelay) { p.stepDelay = 0.2; }
-
+      p.collisionMask=Q.SPRITE_DEFAULT
       p.stepWait = 0;
       this.entity.on("step",this,"step");
       this.entity.on("hit", this,"collision");
@@ -4808,8 +6600,7 @@ Quintus.Input = function(Q) {
     },
 
     step: function(dt) {
-      var p = this.entity.p,
-          moved = false;
+      var p = this.entity.p,moved = false;
       p.stepWait -= dt;
 
       if(p.stepping) {
@@ -4914,7 +6705,20 @@ Quintus.Scenes = function(Q) {
       this.sceneFunc = sceneFunc;
     }
   });
+Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
+  const objectsWithPositiveMark = [];
+  for (const item of dataArray) {
+    if ("mark" in item && item["mark"] >= anumber) {
+      objectsWithPositiveMark.push(item);
+    }
+  }
 
+  if (objectsWithPositiveMark.length === 1) {
+    return objectsWithPositiveMark[0];
+  } else {
+    Q.Active={Rendered:objectsWithPositiveMark,Count:objectsWithPositiveMark.length}
+  }
+}
   /**
    Set up a new scene or return an existing scene. If you don't pass in `sceneFunc`,
    it'll return a scene otherwise it'll create a new one.
@@ -5669,6 +7473,7 @@ Quintus.Scenes = function(Q) {
 
         if(isContainer || !item.container) {
           item.update(dt);
+  
           Q._generateCollisionPoints(item);
           this.regrid(item);
         }
@@ -5746,12 +7551,14 @@ Quintus.Scenes = function(Q) {
       }
       this.trigger("prerender",ctx);
       this.trigger("beforerender",ctx);
-
+ 
+      
       for(var i=0,len=this.items.length;i<len;i++) {
         var item = this.items[i];
         // Don't render sprites with containers (sprites do that themselves)
         // Also don't render if not onscreen
         if(!item.container && (item.p.renderAlways || item.mark >= this.time)) {
+          Q.getObjectOrCountWithPositiveMark(this.items,this.time)
           item.render(ctx);
         }
       }
@@ -6470,6 +8277,7 @@ Quintus.Sprites = function(Q) {
         frame: 0,
         type: Q.SPRITE_DEFAULT | Q.SPRITE_ACTIVE,
         name: '',
+        sort:true,
         spriteProperties: {}
       },defaultProps);
 
@@ -6477,7 +8285,9 @@ Quintus.Sprites = function(Q) {
       this.children = [];
 
       Q._extend(this.p,props);
-
+      if(this.p.type==Q.SPRITE_PARTICLE){
+        this.add("tween");
+      }
       this.size();
       this.p.id = this.p.id || Q._uniqueId();
 
@@ -6728,7 +8538,10 @@ Quintus.Sprites = function(Q) {
       if(this.stage && this.children.length > 0) {
         this.stage.updateSprites(this.children,dt,true);
       }
-
+      // if the opacity of this sprites less than 1 and its a particle sprite just delete it
+      if(this.p.opacity<=0&&this.p.type==Q.SPRITE_PARTICLE){
+        this.destroy();
+      }
       // Reset collisions if we're tracking them
       if(this.p.collisions) { this.p.collisions = []; }
     },
@@ -7607,14 +9420,9 @@ Quintus.UI = function(Q) {
         align: 'center'
       });
 
-      //this.el = document.createElement("canvas");
-      //this.ctx = this.el.getContext("2d");
-
       if(this.p.label) {
         this.calcSize();
       }
-
-      //this.prerender();
     },
 
     calcSize: function() {

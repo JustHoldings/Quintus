@@ -38,7 +38,7 @@ Q.Sprite.extend("Player",{
       direction: "right",
       standingPoints: [ [ -16, 44], [ -23, 35 ], [-23,-48], [23,-48], [23, 35 ], [ 16, 44 ]],
       duckingPoints : [ [ -16, 44], [ -23, 35 ], [-23,-10], [23,-10], [23, 35 ], [ 16, 44 ]],
-      jumpSpeed: -400,
+      jumpSpeed: -900,
       speed: 300,
       strength: 100,
       score: 0,
@@ -113,7 +113,7 @@ Q.Sprite.extend("Player",{
       this.resetLevel();
     }
   },
-
+////////
   continueOverSensor: function() {
     this.p.vy = 0;
     if(this.p.vx != 0) {
@@ -125,7 +125,7 @@ Q.Sprite.extend("Player",{
 
   breakTile: function(col) {
     if(col.obj.isA("TileLayer")) {
-      if(col.tile == 24) { col.obj.setTile(col.tileX,col.tileY, 36); }
+      if(col.tile == 24) { col.obj.setTile(col.tileX,col.tileY, 0); }
       else if(col.tile == 36) { col.obj.setTile(col.tileX,col.tileY, 24); }
     }
     Q.audio.play('coin.mp3');
@@ -356,7 +356,6 @@ Q.Sprite.extend("Door", {
       gravity: 0
     });
     this.add("animation");
-
     this.on("sensor");
   },
   findLinkedDoor: function() {
@@ -408,19 +407,19 @@ Q.loadTMX("level1.tmx, collectables.json, doors.json, enemies.json, fire.mp3, ju
     Q.compileSheets("enemies.png","enemies.json");
     Q.compileSheets("doors.png","doors.json");
     Q.animations("player", {
-      walk_right: { frames: [0,1,2,3,4,5,6,7,8,9,10], rate: 1/15, flip: false, loop: true },
-      walk_left: { frames:  [0,1,2,3,4,5,6,7,8,9,10], rate: 1/15, flip:"x", loop: true },
-      jump_right: { frames: [13], rate: 1/10, flip: false },
-      jump_left: { frames:  [13], rate: 1/10, flip: "x" },
-      stand_right: { frames:[14], rate: 1/10, flip: false },
-      stand_left: { frames: [14], rate: 1/10, flip:"x" },
-      duck_right: { frames: [15], rate: 1/10, flip: false },
-      duck_left: { frames:  [15], rate: 1/10, flip: "x" },
-      climb: { frames:  [16, 17], rate: 1/3, flip: false }
+      walk_right: { frames:"0..10", rate: 15, flip: false, loop: true },
+      walk_left: { frames:"0..10", rate: 15, flip:"x", loop: true },
+      jump_right: { frames: [13], rate: 10, flip: false },
+      jump_left: { frames:  [13], rate: 10, flip: "x" },
+      stand_right: { frames:[14], rate: 10, flip: false },
+      stand_left: { frames: [14], rate: 10, flip:"x" },
+      duck_right: { frames: [15], rate: 10, flip: false },
+      duck_left: { frames:  [15], rate: 10, flip: "x" },
+      climb: { frames: "16..17", rate: 3, flip: false }
     });
     var EnemyAnimations = {
-      walk: { frames: [0,1], rate: 1/3, loop: true },
-      dead: { frames: [2], rate: 1/10 }
+      walk: { frames: [0,1], rate: 3, loop: true },
+      dead: { frames: [2], rate: 10 }
     };
     Q.animations("fly", EnemyAnimations);
     Q.animations("slime", EnemyAnimations);

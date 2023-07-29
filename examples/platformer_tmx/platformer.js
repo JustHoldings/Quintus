@@ -15,7 +15,7 @@ window.addEventListener("load",function() {
 var Q = window.Q = Quintus({debug:false})
         .include("Sprites, Scenes, Input, 2D, Anim, Touch, UI, TMX")
         // Maximize this game to whatever the size of the browser is
-        .setup({ maximize: true,scaleToFit: true,DebugDrawCallCount:true})
+        .setup({ maximize: true,scaleToFit: true,DebugDrawCallCount:true,UseMouse:true})
         // And turn on default input controls and touch input (for UI)
         .controls().touch()
 let TestDebugText=new Q.UI.Text({ 
@@ -25,9 +25,8 @@ let TestDebugText=new Q.UI.Text({
     x:344,
     y:288
 })
-
-
-
+// Overide Player Controls
+Q.ControlOveride={left:"t"}
 // Mouse event that has  the Browser and @Canvas position of the mmouse or where the users touching
 /*
 Q._each(["touchstart","mousemove","touchmove"],function(evt) {
@@ -49,7 +48,7 @@ Q._each(["touchstart","mousemove","touchmove"],function(evt) {
 */
 setInterval(() => {
   if(Q.Active){
-    console.log(Q.Active.Count)
+    console.log(Q("Player").first())
   }
   
 }, 1000);
@@ -84,8 +83,8 @@ Q.Sprite.extend("Player",{
       spawnparticle:false,
     });
 
-    this.add('2d, platformerControls');
-
+    this.add('2d,platformerControls');
+    //this.add('stepControls,2d');
     this.on("hit.sprite",function(collision) {
 
       if(collision.obj.isA("Tower")) {
@@ -99,10 +98,13 @@ Q.Sprite.extend("Player",{
         console.log(`User is pressing the space button`)
         this.p.pressedspace=true
     }
+    if(Q.inputs["j"]){
+      this.p.stepDistance=1
+    }
     if(!Q.inputs["q"]){
       this.p.pressedspace=false
     }
-    if(!this.p.starttimer&&Q.inputs["w"]){
+    if(!this.p.starttimer&&Q.inputs["p"]){
       let TestTimer = new Q.Timer(
         "1 second",
         (progress)=>{
@@ -126,19 +128,20 @@ Q.Sprite.extend("Player",{
   },
   fire:function(data){
     let Particle=new Q.Sprite({
-      x:Q.Mousex+Q.Util.random(90,200),
-      y: Q.Mousey+Q.Util.random(90,200),
+      x:Q.Mousex,
+      y: Q.Mousey,
       asset: 'white-flare.png', 
       angle: 0,
       type:Q.SPRITE_PARTICLE,
       scale:1,
       });
+      Particle
+      .animate({ x:this.p.x+Q.Util.random(10,900), y:this.p.y+Q.Util.random(10,900)}, 2, Q.Easing.inOutElastic, { delay: 1 })
+      .chain({ x: Q("Player").first().p.x, y: Q("Player").first().p.y, scale: 0.1, opacity: 1 }, 1, Q.Easing.Quadratic.In )
+      .chain({scale:2,opacity:2})
+      .chain({opacity:0});
     Q.stage().insert(Particle);
-    Particle
-    .animate({ x:this.p.x+Q.Util.random(10,900), y:this.p.y+Q.Util.random(10,900)}, 2, Q.Easing.inOutElastic, { delay: 1 })
-    .chain({ x: Q("Player").first().p.x, y: Q("Player").first().p.y, scale: 0.1, opacity: 1 }, 1, Q.Easing.Quadratic.In )
-    .chain({scale:2,opacity:2})
-    .chain({opacity:0});
+
   }
 });
 
@@ -169,7 +172,7 @@ Q.Sprite.extend("Enemy",{
     this.on("bump.top",function(collision) {
       if(collision.obj.isA("Player")) { 
         this.destroy();
-        collision.obj.p.vy = -300;
+        //collision.obj.p.vy = -300;
       }
     });
   }

@@ -4,18 +4,21 @@ window.addEventListener('load',function(e) {
                      .svgOnly()
                      .setup('quintus',{ maximize: true });
 
-  
+  Q.WorldPhysics={isGravity:true,gravityY:0,gravityX:0}
   Q.Sprite.extend('CannonBall',{
     init: function(props) {
       this._super({
         shape: 'circle',
         color: 'red',
-        r: 8,
+        r: 32,
         restitution: 0.5,
         density: 4,
         x: props.dx * 50 + 10,
         y: props.dy * 50 + 210,
-        seconds: 99
+        seconds: 99,
+        linearDamping:1,
+        
+        
       });
       this.add('physics');
       this.on('step',this,'countdown');
@@ -23,7 +26,8 @@ window.addEventListener('load',function(e) {
 
     countdown: function(dt) {
       this.p.seconds -= dt;
-      if(this.p.seconds < 0) { 
+      if(this.p.seconds < 0) {
+        Q.stage(0).world.destroyBody(this.physics._body)
         this.destroy();
       } else if(this.p.seconds < 1) {
         this.set({ "fill-opacity": this.p.seconds });
@@ -48,7 +52,7 @@ window.addEventListener('load',function(e) {
           dy = Math.sin(this.p.angle / 180 * Math.PI),
           ball = new Q.CannonBall({ dx: dx, dy: dy, angle: this.p.angle });
       Q.stage().insert(ball);
-      ball.physics.velocity(dx*400,dy*400);
+      ball.physics.velocity(3,3);
     }
   });
 
@@ -58,7 +62,8 @@ window.addEventListener('load',function(e) {
       this._super( Q._extend(props,{
         shape: 'circle',
         color: 'pink',
-        r: 8
+        r: 8,
+        mass:0
       }));
       targetCount++;
       this.add('physics');
@@ -68,6 +73,8 @@ window.addEventListener('load',function(e) {
     checkHit: function(sprite) {
       if(sprite instanceof Q.CannonBall) {
         targetCount--;
+        Q.stage(0).world.destroyBody(sprite.physics._body)
+        Q.stage(0).world.destroyBody(this.physics._body)
         this.destroy();
         if(targetCount == 0) { Q.stageScene('level'); }
       }
@@ -93,11 +100,14 @@ window.addEventListener('load',function(e) {
       points: [[ 0,0 ], [ 50, -50 ],[150, -50],[200,0]],
       x: 200,
       y: 225,
-      type:'static',
-      shape: 'polygon'
+      type:'dynamic',
+      shape: 'polygon',
+      mass:0
     }));
 
-    stage.insert(new Q.Sprite({ w: 50, h:50, x: 300, y: 150 }));
+    stage.insert(new Q.Sprite({ w: 50, h:90, x: 300, y: 150 }));
+    stage.insert(new Q.Sprite({ w: 50, h:90, x: 300, y: 150 }));
+    stage.insert(new Q.Sprite({ w: 50, h:90, x: 300, y: 150 }));
     stage.insert(new Q.Sprite({ w: 25, h:25, x: 300, y: 115 }));
 
     stage.each(function() { this.add("physics"); });

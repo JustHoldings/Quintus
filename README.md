@@ -44,25 +44,33 @@ ToDo
 Changelog
 =========
 ### 0.3.0 Q3 Updates
-  + Added Global Json State loading
-  + Added Global Object pool
-  + Added Updates from last public forks of Quintus
-  + Added in cash.js,it's a JQUERY alternative that's 75% smaller than jquery but gets the job done
-  - Removed grunt build
-  + Added new simple build that works across the various ES versions of code
-  + Added in eruda adds a virtual debug window that can be viewed on mobile too
-  + Added in a Render mode that can be set to "pixel" or "hd" this optimizes the canvas using css for pixel games or None pixel art games
-  + Changed input so it can also trigger events based on arbitrary keys without needing a key schema
-  + Added a Optional debug stat that tells you how many of the game objects in the world are actually activley rendered/ticked
-  + Added a Generic and flexible timer
-  + Added Q.stime it's a simple utility function that just returns Human readable times into their milisecond,second,hourly etc time
-  + Added in alot more easining functions their were only 2 built in linear and Quadratic
-  + Added in  variables MouseX and MouseY to make working with mouse positions less verbose
-  + Added in Q.Active this is another helper function that returns the current amount of objects that are deemed active
-  + Added, Particle Sprite types now automatically get tween component added to them on creation and automatically removed from the scene once no longer in use
-  + Added a Global Event emitter
-  + Added Q.Util this adds some common utility functions to speed up game development
-  + Updated platformer_tmx example,This example will continute to get updates as more features get added to quintus    
+  *-* Added Global Json State loading
+  *-* Added Global Object pool
+  *-* Added Updates from last public forks of Quintus
+  *-* Added in cash.js,it's a JQUERY alternative that's 75% smaller than jquery but gets the job done
+  *-* Removed grunt build
+  *-* Added new simple build that works across the various ES versions of code
+  *-* Added in eruda adds a virtual debug window that can be viewed on mobile too
+  *-* Added in a Render mode that can be set to "pixel" or "hd" this optimizes the canvas using css for pixel games or None pixel art games
+  *-* Changed input so it can also trigger events based on arbitrary keys without needing a key schema
+  *-* Added a Optional debug stat that tells you how many of the game objects in the world are actually activley rendered/ticked
+  *-* Added a Generic and flexible timer
+  *-* Added Q.stime it's a simple utility function that just returns Human readable times into their milisecond,second,hourly etc time
+  *-* Added in alot more easining functions their were only 2 built in linear and Quadratic
+  *-* Added in  variables MouseX and MouseY to make working with mouse positions less verbose
+  *-* Added in Q.Active this is another helper function that returns the current amount of objects that are deemed active
+  *-* Added, Particle Sprite types now automatically get tween component added to them on creation and automatically removed from the scene once no longer in use
+  *-*  Added a Global Event emitter
+  *-*  Added Q.Util this adds some common utility functions to speed up game development
+  *-*  Added, platformer_tmx example,This example will continute to get updates as more features get added to quintus
+  *-* Added, Quintus.tmx object parser to detect and  converting object array string properties to arrays(TMX does not support arrays)
+  *-* Added a BOX2D object type to the base sprite type,This automatically handles properly removing a newly inintialized physics object when it gets destroyed
+  *-* Added Default Key config overide Global Variable for desktop controls in the input module
+  *-* Added in spread syntax support for describing animation frames ie `walk:"0..5"` is the same as `walk:[0,1,2,3,4,5]`
+  *-*Added ,Animation frames now automatically assume atleast a `1/rate` so you can just set the rate to `15` to say run this animation at 15 frames
+  *-*Added,2d module gravity can be overrided(By default its set to 1)
+  *-*Added,Box2D physics world settings can be overriden by utilizing `Q.WorldPhysics`
+  *-*Added,Q.Util now has a faster forEach,some,every,filter,map array functions(Benchmarks are linked in the quintus.js file/Q.Util section)
   
   
 ### 0.2.0 Initial API Docs + Better Tiled Integration + Sloped Tiles

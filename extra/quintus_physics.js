@@ -21,15 +21,27 @@ Quintus.Physics = function(Q) {
     gravityY: 9.8,
     scale: 30,
     velocityIterations: 8,
-    positionIterations: 3
+    positionIterations: 3,
+    isGravity:true
   };
 
   Q.component('world',{
     added: function() {
-      this.opts = Q._extend({},defOpts);
+      //If This game has world physics make these settings the default else just use the built in
+      if(Q.WorldPhysics){
+        this.opts = Q._extend(defOpts,Q.WorldPhysics);
+        console.log(`Physical world settings Does exist override defaults `)
+        console.log(this.opts)
+      }else{
+        this.opts = Q._extend({},defOpts);
+        console.log(`Physical world settings does not exist `)
+      }
+      
       this._gravity = new B2d.Vec(this.opts.gravityX,
                                  this.opts.gravityY);
-      this._world = new B2d.World(this._gravity, true);
+      this._world = new B2d.World(this._gravity, this.opts.isGravity);
+      
+      
 
       var physics = this,
           boundBegin = function(contact) { physics.beginContact(contact); },
@@ -142,11 +154,21 @@ Quintus.Physics = function(Q) {
             
       def.position.x = p.x / scale;
       def.position.y = p.y / scale;
-      def.type = p.type === 'static' ? 
-                 B2d.Body.b2_staticBody :
-                 B2d.Body.b2_dynamicBody;
+      def.type = p.type === 'static' ? B2d.Body.b2_staticBody :B2d.Body.b2_dynamicBody;
       def.active = true;
-      
+      def.allowSleep=p.cansleep?p.cansleep:false
+      def.fixedRotation=p.fixedrotation?p.fixedRotation:false
+      def.bullet=p.bullet?p.bullet:false
+      if(p.mass){
+        def.mass=p.mass
+      }
+      if(p.linearDamping){
+        def.m_linearDamping=p.linearDamping
+      }
+      if(p.m_angularDamping){
+        def.m_angularDamping=p.angularDamping
+
+      }
       this._body = stage.world.createBody(def); 
       this._body.SetUserData(entity);
       fixtureDef.density = p.density || ops.density;
