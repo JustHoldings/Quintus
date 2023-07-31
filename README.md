@@ -40,6 +40,7 @@ ToDo
 * Add in Babylon.js as a Optional Render mode(2D will not be removed)
 * Add in Babylon UI as a optional UI alternative
 * Add in common Ai algorithims(Feeling enemys,Agro enemys etc)
+* Finish implementing basic LDK
 
 Changelog
 =========
@@ -71,6 +72,12 @@ Changelog
   - Added,2d module gravity can be overrided(By default its set to 1)
   - Added,Box2D physics world settings can be overriden by utilizing `Q.WorldPhysics`
   - Added,Q.Util now has a faster forEach,some,every,filter,map array functions(Benchmarks are linked in the quintus.js file/Q.Util section)
+  - Added `setup.zindex`it's 0 by defaut,you can lower it with this incase your games working with DOM elmements as the main UI
+  - Added a automatic refocus,When interacting with dom elements the users focus would get shifted
+  - Added `setup[bootstrap,micron,animexyz,animatestyle]` these libraries can be enabled by setting the library names to true,this does a remote file pull so that the core does not get overly bloated
+  - Added,Enabled Sorting by default for stages and sprite to sort by their z positions by defalt
+  - Fixed,The `UI.HTMLElement` it now correctly updates its position
+  - Added,Began partially parsing LDTK basic format export
   
   
 ### 0.2.0 Initial API Docs + Better Tiled Integration + Sloped Tiles

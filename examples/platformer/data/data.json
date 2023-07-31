@@ -1,0 +1,153 @@
+{
+	"identifier": "Your_typical_2D_platformer",
+	"uniqueIdentifer": "a315ac10-66b0-11ec-9cd7-99f223ad6ade",
+	"x": 0,
+	"y": 0,
+	"width": 848,
+	"height": 336,
+	"bgColor": "#50506A",
+	"neighbourLevels": [
+		{
+			"levelIid": "a316bd80-66b0-11ec-9cd7-c50cdc9d2cc4",
+			"dir": "n"
+		},
+		{
+			"levelIid": "a317cef0-66b0-11ec-9cd7-dd2f249c8c8b",
+			"dir": "s"
+		}
+	],
+	"customFields" : {},
+	"layers": [
+		"Bg_textures.png",
+		"Collisions.png",
+		"Wall_shadows.png"
+	],
+	"entities": {
+		"Player": [
+			{
+				"id": "Player",
+				"iid": "a315d323-66b0-11ec-9cd7-8ddce09157bc",
+				"layer": "Entities",
+				"x": 184,
+				"y": 208,
+				"width": 24,
+				"height": 24,
+				"color": 11009828,
+				"customFields": {
+					"items": [
+						"Knife",
+						"Boots"
+					]
+				}
+			}
+		],
+		"Chest": [
+			{
+				"id": "Chest",
+				"iid": "a315d324-66b0-11ec-9cd7-0d0128b37734",
+				"layer": "Entities",
+				"x": 504,
+				"y": 288,
+				"width": 32,
+				"height": 24,
+				"color": 7003628,
+				"customFields": {
+					"content": [
+						"Healing_Plant",
+						"Water",
+						"Meat"
+					]
+				}
+			}
+		],
+		"Mob": [
+			{
+				"id": "Mob",
+				"iid": "a315d325-66b0-11ec-9cd7-f9e1c56d6020",
+				"layer": "Entities",
+				"x": 328,
+				"y": 160,
+				"width": 20,
+				"height": 20,
+				"color": 16711680,
+				"customFields": {
+					"patrol": [
+						{
+							"cx": 32,
+							"cy": 9
+						}
+					],
+					"loot": [
+						"Meat"
+					]
+				}
+			},
+			{
+				"id": "Mob",
+				"iid": "a315d326-66b0-11ec-9cd7-cf3ea20f8dff",
+				"layer": "Entities",
+				"x": 264,
+				"y": 288,
+				"width": 20,
+				"height": 20,
+				"color": 16711680,
+				"customFields": {
+					"patrol": [
+						{
+							"cx": 26,
+							"cy": 17
+						}
+					],
+					"loot": []
+				}
+			},
+			{
+				"id": "Mob",
+				"iid": "6abe6740-7820-11ed-b9f3-df5bd7818ec4",
+				"layer": "Entities",
+				"x": 728,
+				"y": 144,
+				"width": 20,
+				"height": 20,
+				"color": 16711680,
+				"customFields": {
+					"patrol": [
+						{
+							"cx": 39,
+							"cy": 8
+						}
+					],
+					"loot": []
+				}
+			}
+		],
+		"Door": [
+			{
+				"id": "Door",
+				"iid": "a315d327-66b0-11ec-9cd7-35c28e76b04b",
+				"layer": "Entities",
+				"x": 440,
+				"y": 288,
+				"width": 12,
+				"height": 32,
+				"color": 12036218,
+				"customFields": {
+					"locked": false
+				}
+			},
+			{
+				"id": "Door",
+				"iid": "a315d328-66b0-11ec-9cd7-c30477cb5ff1",
+				"layer": "Entities",
+				"x": 568,
+				"y": 128,
+				"width": 12,
+				"height": 48,
+				"color": 12036218,
+				"customFields": {
+					"locked": false
+				}
+			}
+		]
+	}
+}

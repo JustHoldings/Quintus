@@ -13,11 +13,12 @@ window.addEventListener("load",function() {
 // the Sprites, Scenes, Input and 2D module. The 2D module
 // includes the `TileLayer` class as well as the `2d` componet.
 var Q = window.Q = Quintus({audioSupported: [ 'wav','mp3','ogg' ]})
-        .include("Sprites, Scenes, Input, 2D, Anim, Touch, UI, TMX, Audio")
+        .include("Sprites, Scenes, Input,Touch,2D, Anim, Touch, UI, TMX, Audio")
         // Maximize this game to whatever the size of the browser is
-        .setup({ maximize: true })
+        .setup({width:1003,height:610,container:true,element:"#container",bootstrap:true,micron:true,animexyz:false,animatestyle:true})
         // And turn on default input controls and touch input (for UI)
-        .controls(true).touch()
+        .controls(true)
+        .touch()
         // Enable sounds.
         .enableSound();
 
@@ -125,6 +126,7 @@ Q.Sprite.extend("Player",{
 
   breakTile: function(col) {
     if(col.obj.isA("TileLayer")) {
+      console.log(col)
       if(col.tile == 24) { col.obj.setTile(col.tileX,col.tileY, 0); }
       else if(col.tile == 36) { col.obj.setTile(col.tileX,col.tileY, 24); }
     }
@@ -383,7 +385,11 @@ Q.Collectable.extend("Heart", {
 
 Q.scene("level1",function(stage) {
   Q.stageTMX("level1.tmx",stage);
-
+  stage.on("touchEnd");
+  stage.on("touchstart")
+  stage.touchstart=function(){
+    alert("Touched in the stage")
+  }
   stage.add("viewport").follow(Q("Player").first());
 });
 
@@ -397,7 +403,19 @@ Q.scene('hud',function(stage) {
 
   var strength = container.insert(new Q.UI.Text({x:50, y: 20,
     label: "Health: " + stage.options.strength + '%', color: "white" }));
-
+    container.insert(new Q.UI.HTMLElement({
+      html:`<button type="button" class="btn btn-primary btn-lg" data-micron="bounce">Large button</button>`,
+      x:350,
+      y:20
+    }))
+    container.insert(new Q.UI.HTMLElement({
+      html:`
+      <button type="button" class="btn btn-primary animate__animated animate__bounce">
+  Notifications <span class="badge text-bg-secondary">4</span>
+</button>`,
+      x:560,
+      y:20
+    }))
   container.fit(20);
 });
 

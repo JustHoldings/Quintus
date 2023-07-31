@@ -56,3 +56,20 @@ body {
           top: 25%;
           display: block;
           font-family: sans-serif; }
+#container {
+  width: 1003px;
+  height: 610px;
+  margin-top: 50px;
+  margin-left: -501px;
+  left: 50%;
+  position: absolute;
+  overflow: hidden;
+}
+
+.radial {
+  background: -webkit-radial-gradient(#147AFF, #000);
+  background: -o-radial-gradient(#147AFF, #000);
+  background: -moz-radial-gradient(#147AFF, #000);
+  background: radial-gradient(#147AFF, #000);
+  box-shadow: 0 0 10px #000;
+}

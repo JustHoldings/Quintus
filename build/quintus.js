@@ -13,33 +13,6 @@
 /* file: lib/quintus.js */
 
 /* External loading Library*/
-
-// Function to load external JavaScript file and execute it
-function loadAndExecuteExternalJS(url) {
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        // Use eval to execute the loaded JavaScript code
-        eval(xhr.responseText);
-        console.log(`${url} file loaded and executed.`);
-        // You can call functions from the loaded script here, if necessary.
-        // For example: someFunctionFromExternalJS();
-      } else {
-        console.error("Error loading external JS file.");
-      }
-    }
-  };
-  xhr.open("GET", url, true);
-  xhr.send();
-}
-
-// Load the external.js file
-///loadAndExecuteExternalJS("https://cdnjs.cloudflare.com/ajax/libs/cash/8.1.5/cash.min.js");
-
-
-
-
 /*global module:false */
 
 
@@ -3159,7 +3132,70 @@ map (array, callback) {
     }
   };
   
+  Q.loadAndExecuteExternalJS=function(url) {
+    return new Promise((resolve, reject) => {
+      // Check if the script is already loaded
+      const existingScript = document.querySelector(`script[src="${url}"]`);
+      if (existingScript) {
+        resolve(); // Script is already loaded, resolve immediately
+      } else {
+        // Create a script element
+        const script = document.createElement('script');
+        script.src = url;
+  
+        // Event handler for successful load
+        script.onload = () => {
+          console.log("[External] js file loaded")
+          resolve();
+        };
+  
+        // Event handler for load error
+        script.onerror = () => {
+          // If loading fails, try to evaluate using eval
+          try {
+            eval(script.innerText);
+            resolve();
+          } catch (e) {
+            reject(new Error(`Failed to load or evaluate the script: ${url}`));
+          }
+        };
+  
+        // Append the script element to the document's head
+        document.head.appendChild(script);
+      }
+    });
+  }
+  Q.loadExternalCSS=function(url) {
+    return new Promise((resolve, reject) => {
+      // Check if the CSS is already loaded
+      const existingLink = document.querySelector(`link[href="${url}"]`);
+      if (existingLink) {
+        resolve(); // CSS is already loaded, resolve immediately
+      } else {
+        // Create a link element
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = url;
+  
+        // Event handler for successful load
+        link.onload = () => {
+          console.log("[External] Css file loaded")
+          resolve();
+        };
+  
+        // Event handler for load error
+        link.onerror = () => {
+          reject(new Error(`Failed to load CSS: ${url}`));
+        };
+  
+        // Append the link element to the document's head
+        document.head.appendChild(link);
 
+      }
+    });
+  }
+  
   /**
 
    Canvas Methods
@@ -3200,13 +3236,14 @@ map (array, callback) {
     if(window.location.hostname=='127.0.0.1'||"localhost"){
       if(Q.options.debug!==false){
         Q.debug=true
+        javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='https://mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+        if(Q.OS.android||Q.OS.iOS){
+          javascript:(function () { var script = document.createElement('script'); script.src="https://cdn.jsdelivr.net/npm/eruda"; document.body.append(script); script.onload = function () { eruda.init(); } })();
+        
+        }
       }
       
-      javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='https://mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
-if(Q.OS.android||Q.OS.iOS){
-  javascript:(function () { var script = document.createElement('script'); script.src="https://cdn.jsdelivr.net/npm/eruda"; document.body.append(script); script.onload = function () { eruda.init(); } })();
 
-}
     }
     if(Q._isObject(id)) {
       options = id;
@@ -3227,7 +3264,12 @@ if(Q.OS.android||Q.OS.iOS){
       Q.el.height = options.height || 420;
       Q.el.id = id;
       Q.canvasid=id //* Lets make the canvas ID global for ease of access after its created
-      document.body.appendChild(Q.el)
+      if(options.container){
+        $(Q.el).appendTo (options.element)
+      }else{
+        document.body.appendChild(Q.el)
+      }
+      
     }
 
     var w = parseInt(Q.el.width,10),
@@ -3289,6 +3331,17 @@ if(Q.OS.android||Q.OS.iOS){
       Q.wrapper.style.position = "relative";
       elParent.insertBefore(Q.wrapper,Q.el);
       Q.wrapper.appendChild(Q.el);
+      if(options.zindex){
+        $("canvas").css ( "z-index",options.zindex )
+        
+      }
+      //When working with DOM elements the windows focus leaves the canvas so this just make sure it autommatically goes back without the user needing to do anything
+      document.querySelector("canvas").onblur = function() {
+        var me = this;
+        setTimeout(function() {
+            me.focus();
+        }, 100);
+    }
       switch (Q.options.Render) {
         case"pixel":
           console.log(Q.Title+"[Render mode] Pixel Art")
@@ -3300,7 +3353,22 @@ if(Q.OS.android||Q.OS.iOS){
           break;
       }
     }
-
+    
+    if(options.bootstrap){
+      Q.loadAndExecuteExternalJS("https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js")
+      Q.loadExternalCSS("https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css")
+    }
+    
+    if(options.micron){
+      Q.loadAndExecuteExternalJS("https://shdw-drive.genesysgo.net/6e6M828LnCRZhZ4cSwcy2fj5FB3y1RfsK61Ux9w4CpcC/unpkg.com_webkul-micron%401.1.6_dist_script_micron.min.js")
+      Q.loadExternalCSS("https://unpkg.com/webkul-micron@1.1.6/dist/css/micron.min.css")
+    }
+    if(options.animexyz){
+      Q.loadExternalCSS("https://cdn.jsdelivr.net/npm/@animxyz/core")
+    }
+    if(options.animatestyle){
+      Q.loadExternalCSS("https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css")
+    }
     Q.el.style.position = 'relative';
 
     Q.ctx = Q.el.getContext &&
@@ -3357,11 +3425,14 @@ if(Q.OS.android||Q.OS.iOS){
     });
     if(options.UseMouse){
       window.addEventListener(`pointermove`,function(e){
-        var stage = Q.stage(0), 
-        touch = e.changedTouches ?e.changedTouches[0] : e,
-        point =stage.viewport?Q.CanvasToStage(touch.pageX,touch.pageY,stage):false
-        Q.Mousex=point.x
-        Q.Mousey=point.y
+        if(typeof Q.stage(0)!=="undefined"){
+          var stage = Q.stage(0), 
+          touch = e.changedTouches ?e.changedTouches[0] : e,
+          point =stage.viewport?Q.CanvasToStage(touch.pageX,touch.pageY,stage):false
+          Q.Mousex=point.x
+          Q.Mousey=point.y
+        }
+
       })
     }
 
@@ -5936,7 +6007,6 @@ Quintus.Input = function(Q) {
       Q.el.style.outline = 0;
 
       Q.el.addEventListener("keydown",function(e) {
-        
         if(Q.input.keys[e.keyCode]) {
           var actionName = Q.input.keys[e.keyCode];
           Q.inputs[actionName] = true;
@@ -5952,6 +6022,7 @@ Quintus.Input = function(Q) {
       },false);
 
       Q.el.addEventListener("keyup",function(e) {
+
         if(Q.input.keys[e.keyCode]) {
           var actionName = Q.input.keys[e.keyCode];
           Q.inputs[actionName] = false;
@@ -7047,7 +7118,7 @@ Q.getObjectOrCountWithPositiveMark=function(dataArray,anumber) {
   Q.Stage = Q.GameObject.extend({
     // Should know whether or not the stage is paused
     defaults: {
-      sort: false,
+      sort: true,
       gridW: 400,
       gridH: 400,
       x: 0,
@@ -8403,7 +8474,7 @@ Quintus.Sprites = function(Q) {
         frame: 0,
         type: Q.SPRITE_DEFAULT | Q.SPRITE_ACTIVE,
         name: '',
-        sort:false,
+        sort:true,
         spriteProperties: {}
       },defaultProps);
 
@@ -8615,7 +8686,6 @@ Quintus.Sprites = function(Q) {
       ctx.fillStyle = this.p.hit ? "blue" : "red";
       ctx.strokeStyle = "#FF0000";
       ctx.fillStyle = "rgba(0,0,0,0.5)";
-
       ctx.moveTo(this.p.points[0][0],this.p.points[0][1]);
       for(var i=0;i<this.p.points.length;i++) {
         ctx.lineTo(this.p.points[i][0],this.p.points[i][1]);
@@ -8984,7 +9054,6 @@ Quintus.TMX = function(Q) {
          y = attr(obj,'y'),
          properties = tileProperties[gid],
          overrideProperties = parseProperties(obj);
-
      if(!properties) { throw "Invalid TMX Object: missing properties for GID:" + gid; }
      if(!properties['Class']) { throw "Invalid TMX Object: missing Class for GID:" + gid; }
 
@@ -9836,7 +9905,6 @@ Quintus.UI = function(Q) {
     },
 
     step: function(dt) {
-      this._super(dt);
       this.positionIFrame();
     },
 
@@ -9861,27 +9929,46 @@ Quintus.UI = function(Q) {
    @for Q.UI
    */
   Q.UI.HTMLElement = Q.Sprite.extend("UI.HTMLElement", {
-    init: function(p) {
+    init: function(p,callback) {
       this._super(p, { opacity: 1, type: Q.SPRITE_UI  });
 
       Q.wrapper.style.overflow = "hidden";
-
+      this.callback = callback;
       this.el = document.createElement("div");
       this.el.innerHTML = this.p.html;
-
+      this.el.style.position = "absolute";
+      this.el.style.zIndex = 500;
+      this.el.style.top="0px"
+      this.el.style.left="0px"
       Q.wrapper.appendChild(this.el);
+      if(this.p.keyActionName) {
+        Q.input.on(this.p.keyActionName,this,"push");
+      }
       this.on("inserted",function(parent) {
         this.position();
         parent.on("destroyed",this,"remove");
         parent.on("clear",this,"remove");
       });
     },
-
     position: function() {
+      var x = this.p.x;
+      var y = this.p.y;
+      if(this.stage.viewport) {
+        x -= this.stage.viewport.x;
+        y -= this.stage.viewport.y;
+      }
+
+      if(this.oldX !== x || this.oldY !== y || this.oldOpacity !== this.p.opacity) {
+        this.el.style.top = y  + "px";
+        this.el.style.left = x + "px";
+        this.el.style.opacity = this.p.opacity?this.p.opacity:1;
+        this.oldX = x;
+        this.oldY = y;
+        this.oldOpacity = this.p.opacity;
+      } 
     },
 
     step: function(dt) {
-      this._super(dt);
       this.position();
     },
 

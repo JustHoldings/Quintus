@@ -18,6 +18,7 @@ var Q = window.Q = Quintus({Render:"pixel"})
         .setup({ maximize: true })
         // And turn on default input controls and touch input (for UI)
         .controls().touch()
+Q.loadData("ldk.txt","data.json")
 
 // ## Player Sprite
 // The very basic player sprite, this is just a normal sprite
@@ -30,8 +31,9 @@ Q.Sprite.extend("Player",{
     // You can call the parent's constructor with this._super(..)
     this._super(p, {
       sheet: "player",  // Setting a sprite sheet sets sprite width and height
-      x: 410,           // You can also set additional properties that can
-      y: 90             // be overridden on object creation
+      x: Q.Data.data.entities.Player[0].x,           // You can also set additional properties that can
+      y: Q.Data.data.entities.Player[0].y,
+      jumpSpeed: -900,// be overridden on object creation
     });
 
     // Add in pre-made components to get up and running quickly
@@ -103,11 +105,12 @@ Q.scene("level1",function(stage) {
 
   // Add in a repeater for a little parallax action
   stage.insert(new Q.Repeater({ asset: "background-wall.png", speedX: 0.5, speedY: 0.5 }));
-
   // Add in a tile layer, and make it the collision layer
   stage.collisionLayer(new Q.TileLayer({
-                             dataAsset: 'level.json',
-                             sheet:     'tiles' }));
+                             dataAsset:Q.Data.ldk,
+                             sheet:'tiles',
+                             width: 848,
+}));
 
 
   // Create the player and add them to the stage
@@ -153,7 +156,7 @@ Q.scene('endGame',function(stage) {
 // Q.load can be called at any time to load additional assets
 // assets that are already loaded will be skipped
 // The callback will be triggered when everything is loaded
-Q.load("sprites.png, sprites.json, level.json, tiles.png, background-wall.png", function() {
+Q.load("sprites.png, sprites.json, ldk.txt, tiles.png, background-wall.png", function() {
   // Sprites sheets can be created manually
   Q.sheet("tiles","tiles.png", { tilew: 32, tileh: 32 });
 

@@ -17,7 +17,7 @@ window.addEventListener('load',function(e) {
     // (containers are transparent by default, but 
     // seeting a fill and/or a border give them an appearance)
     var container = stage.insert(new Q.UI.Container({
-      fill: "gray",
+      fill: "black",
       border: 5,
       shadow: 10,
       shadowColor: "rgba(0,0,0,0.5)",
@@ -30,16 +30,25 @@ window.addEventListener('load',function(e) {
     // to insert elements into containers.
     // Elements in containers move relative to
     // container so (0,0) is the center of the container
+    var BIGBOY="test"
     stage.insert(new Q.UI.Text({ 
       label: "Here's a label\nin a container",
       color: "white",
       x: 0,
       y: 0
     }),container);
-
+    stage.insert(new Q.UI.HTMLElement({
+      html:`<button id="gigabutton">Button</button>
+      <input type="submit"></input>`,
+      x:100,
+      y:300
+    }),container)
+    $("#gigabutton").on ("click",function(){
+      alert(`Test ${BIGBOY}`)
+    }) 
     // Call container.fit to expand a container
     // to fit all the elemnt in it
-    container.fit(20,20);
+    container.fit(90,90);
 
     // You can create buttons, which just default
     // to text labels and take a second init argument
@@ -56,7 +65,7 @@ window.addEventListener('load',function(e) {
     // have fills and borders as well
     stage.insert(new Q.UI.Button({
       label: "Another Button",
-      y: 200,
+      y: 250,
       x: Q.width/2,
       fill: "#990000",
       border: 5,
@@ -71,19 +80,19 @@ window.addEventListener('load',function(e) {
       color: "black",
       align: 'center',
       x: Q.width/2,
-      y: 280
+      y: 300
     }));
 
     // Buttons can also have assets or sheets
     // and will render themselves as images
     stage.insert(new Q.UI.Button({
       asset: 'enemy.png',
-      x: Q.width/2,
+      x:0,
       scale: 0.5,
-      y: 370
+      y: 89
     }, function() {
       this.p.angle += 90;
-    }));
+    }),container);
   });
 
 

@@ -15,7 +15,7 @@ window.addEventListener("load",function() {
 var Q = window.Q = Quintus({debug:false})
         .include("Sprites, Scenes, Input, 2D, Anim, Touch, UI, TMX")
         // Maximize this game to whatever the size of the browser is
-        .setup({ maximize: true,scaleToFit: true,DebugDrawCallCount:true,UseMouse:true})
+        .setup({ maximize: true,scaleToFit: true,DebugDrawCallCount:true,UseMouse:true,zindex:0})
         // And turn on default input controls and touch input (for UI)
         .controls().touch()
 let TestDebugText=new Q.UI.Text({ 
